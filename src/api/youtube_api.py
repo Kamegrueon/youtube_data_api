@@ -1,10 +1,16 @@
-#%%
-from googleapiclient.discovery import build
-from api.youtube_api_config import YOUTUBE_API_KEY, YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION
 import json
-from datetime import datetime
-import pytz
 import pathlib
+from datetime import datetime
+
+import pytz
+from googleapiclient.discovery import build
+
+from api.youtube_api_config import (
+    YOUTUBE_API_KEY,
+    YOUTUBE_API_SERVICE_NAME,
+    YOUTUBE_API_VERSION,
+)
+
 
 class YoutubeApiRequest:
     def __init__(self) -> None:
@@ -16,8 +22,8 @@ class YoutubeApiRequest:
         dt = datetime.now(pytz.timezone('Asia/Tokyo'))
         self.date_str = dt.strftime('%Y%m%d%H%M')
         self.output_path = list(pathlib.Path("/app/src").glob("json"))[0]
-        
-    def get_youtube_data_to_json(self):
+
+    def get_youtube_data_to_json(self) -> None:
         request = self.youtube.videos().list(
             part="snippet,contentDetails,statistics",
             chart="mostPopular",
@@ -25,10 +31,10 @@ class YoutubeApiRequest:
             regionCode="JP"
         )
         res = request.execute()
-        
+
         with open(f"{self.output_path}/{self.date_str}_popular.json", encoding='utf-8', mode='w') as f:
             json.dump(res, f, ensure_ascii=False, indent=2)
-    
+
     # def get_youtube_most_popular(self):
     #     request = self.youtube.videos().list(
     #         part="snippet,contentDetails,statistics",
@@ -67,14 +73,8 @@ class YoutubeApiRequest:
     #     } for item in res["items"] if item["snippet"]["assignable"]
     #     ]
     #     return categories
-    
-
-        
-        
 
 
-# %%
 if __name__ == "__main__":
     youtube = YoutubeApiRequest()
     youtube.get_youtube_data_to_json()
-# %%
