@@ -32,47 +32,12 @@ class YoutubeApiRequest:
         )
         res = request.execute()
 
-        with open(f"{self.output_path}/{self.date_str}_popular.json", encoding='utf-8', mode='w') as f:
+        with open(
+            f"{self.output_path}/{self.date_str}_popular.json",
+            encoding='utf-8',
+            mode='w',
+        ) as f:
             json.dump(res, f, ensure_ascii=False, indent=2)
-
-    # def get_youtube_most_popular(self):
-    #     request = self.youtube.videos().list(
-    #         part="snippet,contentDetails,statistics",
-    #         chart="mostPopular",
-    #         maxResults=50,
-    #         regionCode="JP"
-    #     )
-    #     res = request.execute()
-    #     videos = [
-    #     {
-    #         "video_id": item["id"],
-    #         "title": item["snippet"]["title"],
-    #         "published_at": item["snippet"]["publishedAt"],
-    #         "tags": item["snippet"].get("tags", ""),
-    #         "category_id": item["snippet"]["categoryId"],
-    #         "duration": item["contentDetails"]["duration"], # 動画の長さ(P:YMWD, T:HMS)
-    #         "view_count": item["statistics"]["viewCount"],
-    #         "like_count": item["statistics"].get("likeCount", 0),
-    #         "dislike_count": item["statistics"].get("dislikeCount", 0),
-    #         "favorite_count": item["statistics"].get("favoriteCount", 0),
-    #         "comment_count": item["statistics"].get("commentCount", 0),
-    #     } for item in res["items"]
-    #     ]
-    #     return videos
-
-    # def get_youtube_categories(self):
-    #     request = self.youtube.videoCategories().list(
-    #         part="id, snippet",
-    #         regionCode="JP"
-    #     )
-    #     res = request.execute()
-    #     categories = [
-    #     {
-    #         "id": item["id"], 
-    #         "category": item["snippet"]["title"]
-    #     } for item in res["items"] if item["snippet"]["assignable"]
-    #     ]
-    #     return categories
 
 
 if __name__ == "__main__":
