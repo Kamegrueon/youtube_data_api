@@ -1,0 +1,35 @@
+version: '3'
+services:
+  python3:
+    build: .
+    container_name: 'python3'
+    working_dir: '/app'
+    tty: true
+    environment:
+      - STORAGE_EMULATOR_HOST=http://host.docker.internal:4443
+      - BIGQUERY_EMULATOR_HOST=http://host.docker.internal:9050
+    volumes:
+      - type: bind
+        source: '.'
+        target: '/app'
+
+  bq:
+    image: ghcr.io/goccy/bigquery-emulator:latest
+    # platform: linux/x86_64
+    container_name: 'bq'
+    ports:
+      - "9050:9050"
+    command: "bigquery-emulator --project=youtube_data_api"
+
+  gcs:
+    # GCS用
+    container_name: gcs
+    image: fsouza/fake-gcs-server:1.43.0
+    tty: true
+    ports:
+      - "4443:4443"
+    volumes:
+      - type: bind
+        source: ./tmp/cloud-storage/data
+        target: /data/youtube
+    command: -scheme http --port 4443 --public-host host.docker.internal
