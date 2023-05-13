@@ -4,7 +4,7 @@ import json
 from google.cloud import bigquery
 from google.oauth2.service_account import Credentials
 
-from gcp.config.bq_config import MOST_POPULAR_TABLE_SCHEMA
+from gcp.config.schema import MOST_POPULAR_TABLE_SCHEMA
 from gcp.config.gcp_config import GOOGLE_KEY_PATH, PROJECT_ID
 from utils.extract_most_popular import (
     extract_most_popular,
@@ -20,7 +20,7 @@ from utils.extract_most_popular import (
 
 
 class BQ:
-    def __init__(self, project_id: str = PROJECT_ID) -> None:
+    def __init__(self, project_id: str) -> None:
         credentials = Credentials.from_service_account_file(GOOGLE_KEY_PATH)
         self.client = bigquery.Client(
             # credentials=AnonymousCredentials(),
@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     # youtube = YoutubeApiRequest()
     gcs = GCS(bucket_name=BUCKET_NAME)
-    bq = BQ()
+    bq = BQ(project_id=PROJECT_ID)
     # youtube.get_youtube_data_to_json()
     # LOCAL_FILE_PATH =
     # f"{youtube.output_path}/{youtube.date_str}_popular.json"

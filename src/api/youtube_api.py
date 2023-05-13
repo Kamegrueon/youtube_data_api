@@ -21,11 +21,11 @@ class YoutubeApiRequest:
         )
         dt = datetime.now(pytz.timezone('Asia/Tokyo'))
         self.date_str = dt.strftime('%Y%m%d%H%M')
-        self.output_path = list(pathlib.Path("/app/src").glob("json"))[0]
+        self.output_path = list(pathlib.Path("src").glob("json"))[0]
 
     def get_youtube_data_to_json(self) -> None:
         request = self.youtube.videos().list(
-            part="snippet,contentDetails,statistics",
+            part="snippet, contentDetails, statistics",
             chart="mostPopular",
             maxResults=50,
             regionCode="JP"
