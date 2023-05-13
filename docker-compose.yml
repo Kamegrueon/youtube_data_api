@@ -6,8 +6,7 @@ services:
     working_dir: '/app'
     tty: true
     environment:
-      - STORAGE_EMULATOR_HOST=http://host.docker.internal:4443
-      - BIGQUERY_EMULATOR_HOST=http://host.docker.internal:9050
+      - GCP_KEY_PATH=/app/youtube-data-api-385206-c3a94f0b7c7c.json
     volumes:
       - type: bind
         source: '.'
