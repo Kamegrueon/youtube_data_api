@@ -11,24 +11,14 @@ services:
       - type: bind
         source: '.'
         target: '/app'
-
-  bq:
-    image: ghcr.io/goccy/bigquery-emulator:latest
-    # platform: linux/x86_64
-    container_name: 'bq'
+  web:
+    image: apache/airflow:2.0.0
+    container_name: airflow
     ports:
-      - "9050:9050"
-    command: "bigquery-emulator --project=youtube_data_api"
-
-  gcs:
-    # GCS用
-    container_name: gcs
-    image: fsouza/fake-gcs-server:1.43.0
-    tty: true
-    ports:
-      - "4443:4443"
+      - 8080:8080
     volumes:
-      - type: bind
-        source: ./tmp/cloud-storage/data
-        target: /data/youtube
-    command: -scheme http --port 4443 --public-host host.docker.internal
+      - ./opt/airflow:/opt/airflow
+    # command: db init
+    # command: webserver
+    command: >
+      bash -c "airflow webserver -p 8080 -D && airflow scheduler -D"
