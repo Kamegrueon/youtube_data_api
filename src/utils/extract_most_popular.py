@@ -1,5 +1,4 @@
-# from pandas import DataFrame
-# import json
+# -*- coding: utf-8 -*-
 
 def extract_datetime_from_file_name(file_name: str) -> str:
     date = f"{file_name[0:4]}-{file_name[4:6]}-{file_name[6:8]}"
@@ -14,7 +13,7 @@ def extract_published(published_at: str) -> str:
 
 
 def extract_most_popular(data: dict, created_at: str) -> list[dict]:
-    videos = [
+    videos_json = [
         {
             "VIDEO_ID": item["id"],
             "TITLE": item["snippet"]["title"],
@@ -34,6 +33,4 @@ def extract_most_popular(data: dict, created_at: str) -> list[dict]:
         } for item in data["items"]
     ]
 
-    # print(file_name[8:20])
-    # videos["CREATED_AT"] = file_name[8:20]
-    return videos
+    return videos_json
