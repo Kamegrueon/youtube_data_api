@@ -18,9 +18,8 @@ def main() -> None:
     # ローカルにJSONファイルで保存
     youtube.get_youtube_data_to_json()
 
-    local_file_path = f"{youtube.output_path}/{youtube.date_str}_popular.json"
-    folder_path = f"{gcs.bucket_name}/most_popular/"
-    gcs_file_path = f"{folder_path}{youtube.date_str}_popular.json"
+    local_file_path = f"{youtube.local_path}/{youtube.date_str}_popular.json"
+    gcs_file_path = f"most_popular/{youtube.date_str}_popular.json"
 
     # ローカルのJSONファイルを取得してGCSにupload
     gcs.upload_file(

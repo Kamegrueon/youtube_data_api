@@ -4,7 +4,7 @@ import json
 from google.cloud import bigquery
 from google.oauth2.service_account import Credentials
 
-from gcp.config.schema import MOST_POPULAR_TABLE_SCHEMA
+from gcp.config.bq_schema import MOST_POPULAR_TABLE_SCHEMA
 from gcp.config.gcp_config import GOOGLE_KEY_PATH, PROJECT_ID
 from utils.extract_most_popular import (
     extract_most_popular,
