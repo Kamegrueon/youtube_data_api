@@ -6,23 +6,21 @@
 # Third Party Library
 # from google.auth.credentials import AnonymousCredentials
 from google.cloud import storage
-from google.oauth2.service_account import Credentials
 
 # First Party Library
-from gcp.config.gcp_config import GOOGLE_KEY_PATH
+# from gcp.config.gcp_config import GOOGLE_KEY_PATH
 
 # GCSのオブジェクトを取得する
 # curl http://host.docker.internal:4443/storage/v1/b/youtube/o
 
 
 class GcsInterface:
-    def __init__(self, project_id: str, bucket_name: str, ) -> None:
-        credentials = Credentials.from_service_account_file(GOOGLE_KEY_PATH)
-        self.client = storage.Client(
-            # credentials=AnonymousCredentials(),
-            credentials=credentials,
-            project=project_id,
-        )
+    def __init__(
+        self,
+        project_id: str,
+        bucket_name: str,
+    ) -> None:
+        self.client = storage.Client(project=project_id,)
         self.bucket = self.client.get_bucket(bucket_name)
 
     # def __local_copy_process(self, target_path: str, dest_path: str) -> None:
@@ -77,11 +75,16 @@ class GcsInterface:
 
 
 # if __name__ == "__main__":
-#     from api.youtube_api import YoutubeApiRequest
-#     BUCKET_NAME = PROJECT_ID
+#     import os
+#     from dotenv import load_dotenv
+#     load_dotenv()
 
-#     youtube = YoutubeApiRequest()
-#     gcs = GcsInterface(bucket_name=BUCKET_NAME)
+#     # #     from api.youtube_api import YoutubeApiRequest
+#     # #     BUCKET_NAME = PROJECT_ID
+#     PROJECT_ID = os.environ["PROJECT_ID"]
+#     BUCKET_NAME = os.environ["BUCKET_NAME"]
+#     #     youtube = YoutubeApiRequest()
+#     gcs = GcsInterface(project_id=PROJECT_ID, bucket_name=BUCKET_NAME)
 #     # gcs.create_bucket()
 
 #     youtube.get_youtube_data_to_json()
