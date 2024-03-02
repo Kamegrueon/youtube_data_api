@@ -48,7 +48,7 @@ class BQ:
         )
 
         table.clustering_fields = ["CHANNEL_ID", "CATEGORY_ID"]
-        table.description = "DEmo Data"
+        table.description = "Demo Data"
 
         self.client.create_table(table)
 

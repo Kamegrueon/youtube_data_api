@@ -11,6 +11,9 @@ google-api-python-client = "^2.86.0"
 pytz = "^2023.3"
 google-cloud-storage = "^2.8.0"
 google-cloud-bigquery = "^3.10.0"
+isort = "^5.13.2"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.27.1"}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -26,7 +29,6 @@ flake8-pytest-style = "^1.7.2"
 pep8-naming = "^0.13.3"
 mypy = "^1.2.0"
 black = "^23.3.0"
-isort = "^5.12.0"
 
 
 [tool.poetry.group.types.dependencies]
