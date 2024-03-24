@@ -3,12 +3,16 @@ import base64
 import json
 
 # Third Party Library
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from pydantic import BaseModel
+from typing import Optional
+from loguru import logger
 
 # First Party Library
 from api.youtube_api import YoutubeApiRequest
 from env import (
     BUCKET_NAME,
+    TOPIC_NAME,
     PROJECT_ID,
     SECRET_ID,
     SECRET_YOUTUBE_API_VERSION,
@@ -18,6 +22,7 @@ from env import (
 from gcp.bq import BqInterface
 from gcp.gcs import GcsInterface
 from gcp.secretmanager import SecretManagerInterface
+from gcp.pubsub import PubSubInterface
 from utils.extract_most_popular import (
     extract_datetime_from_file_path,
     extract_most_popular,
@@ -25,15 +30,66 @@ from utils.extract_most_popular import (
 
 app = FastAPI()
 
+# flake8: noqa
 
-@app.get("/invoke/transfer")
-def invoke_transfer_to_gcs() -> str:
+
+class PubsubMessage(BaseModel):
+    attributes: Optional[dict] = None
+    data: str
+    messageId: str
+    message_id: str
+    orderingKey: Optional[str] = None
+    publishTime: str
+    publish_time: str
+
+
+class PubsubRequest(BaseModel):
+    message: PubsubMessage
+    subscription: str
+    deliveryAttempt: Optional[int] = None
+
+
+def check_pubsub_message(request) -> str:
+    envelope = json.loads(request.json())
+    logger.info(f"envelope: {envelope} type: {type(envelope)}")
+    # envelope = await request.json()
+    if not envelope:
+        msg = "no Pub/Sub message received"
+        logger.info(f"error: {msg}")
+        raise HTTPException(status_code=400, detail=f"Bad Request: {msg}")
+
+    if not isinstance(envelope, dict) and "message" not in envelope:
+        msg = "invalid Pub/Sub message format"
+        logger.info(f"error: {msg}")
+        raise HTTPException(status_code=400, detail=f"Bad Request: {msg}")
+
+    pubsub_message = envelope["message"]
+    logger.info(f"{pubsub_message}")
+    text = ""
+    if isinstance(pubsub_message, dict) and "data" in pubsub_message:
+        text = base64.b64decode(
+            pubsub_message["data"]).decode("utf-8").strip()
+    logger.info(f"PubSubMsg Is {text}")
+    return text
+
+
+@app.post("/invoke/transfer")
+async def invoke_transfer_to_gcs(background_tasks: BackgroundTasks, request: PubsubRequest) -> None:
+    text = check_pubsub_message(request)
+
+    background_tasks.add_task(process_message, text)
+    return {"message": "Message received and processing started API Fetch to Save."}
+
+
+async def process_message(text):
     sc = SecretManagerInterface()
     developer_key = sc.get_secret(
         project_id=PROJECT_ID,
         secret_id=SECRET_ID,
         version_id=SECRET_YOUTUBE_API_VERSION
     )
+
+    logger.info(developer_key)
 
     youtube = YoutubeApiRequest(
         youtube_api_service_name=YOUTUBE_API_SERVICE_NAME,
@@ -44,35 +100,31 @@ def invoke_transfer_to_gcs() -> str:
     res = youtube.get_youtube_data()
     data = json.dumps(res)
 
+    logger.info(BUCKET_NAME)
+
     gcs = GcsInterface(
         project_id=PROJECT_ID,
         bucket_name=BUCKET_NAME,
     )
     file_path = f"most_popular/{youtube.date_str}_popular.json"
+    logger.info(file_path)
     gcs.upload_json(file_path, data)
-    return file_path
+
+    pubsub = PubSubInterface(
+        project_id=PROJECT_ID,
+        topic_name=TOPIC_NAME
+    )
+    pubsub.publish(file_path)
 
 
-@app.get("/invoke/load")
-def invoke_load_to_bq(request: Request) -> None:
+@app.post("/invoke/load")
+async def invoke_load_to_bq(background_tasks: BackgroundTasks, request: PubsubRequest) -> None:
+    file_path = check_pubsub_message(request)
+    background_tasks.add_task(load_bq, file_path)
+    return {"message": "Message received and processing started BQ Load."}
 
-    envelope = request.json()
-    if not envelope:
-        msg = "no Pub/Sub message received"
-        print(f"error: {msg}")
-        raise HTTPException(status_code=400, detail=f"Bad Request: {msg}")
 
-    if not isinstance(envelope, dict) or "message" not in envelope:
-        msg = "invalid Pub/Sub message format"
-        print(f"error: {msg}")
-        raise HTTPException(status_code=400, detail=f"Bad Request: {msg}")
-
-    pubsub_message = envelope["message"]
-    file_path = ""
-    if isinstance(pubsub_message, dict) and "data" in pubsub_message:
-        file_path = base64.b64decode(
-            pubsub_message["data"]).decode("utf-8").strip()
-
+async def load_bq(file_path):
     gcs = GcsInterface(project_id=PROJECT_ID, bucket_name=BUCKET_NAME)
     bq = BqInterface(project_id=PROJECT_ID)
     blob = gcs.get_file(file_path)
@@ -80,7 +132,7 @@ def invoke_load_to_bq(request: Request) -> None:
     dataset_name = "videos"
     table_name = "most_popular"
 
-    print("Deleting table if exists...")
+    logger.info("Deleting table if exists...")
     bq.client.delete_table(f"{dataset_name}.{table_name}", not_found_ok=True)
     bq.generate_table(dataset_name, table_name)
 
@@ -91,10 +143,11 @@ def invoke_load_to_bq(request: Request) -> None:
             created_at = extract_datetime_from_file_path(file_path)
             extract_data = extract_most_popular(data, created_at)
 
+    logger.info("Insert Table Data")
     bq.insert_table_data(
         dataset_name=dataset_name,
         table_name=table_name,
-        data=extract_data,
+        data=extract_data
     )
 
 # def main() -> None:

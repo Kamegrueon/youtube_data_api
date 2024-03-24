@@ -1,7 +1,7 @@
 # import json
 # import os
 # import shutil
-# from typing import Optional
+from typing import Optional
 
 # Third Party Library
 # from google.auth.credentials import AnonymousCredentials
@@ -20,8 +20,9 @@ class GcsInterface:
         project_id: str,
         bucket_name: str,
     ) -> None:
-        self.client = storage.Client(project=project_id,)
-        self.bucket = self.client.get_bucket(bucket_name)
+        self.client = storage.Client(project=project_id)
+        self.bucket_name = bucket_name
+        self.bucket = self.client.bucket(bucket_name)
 
     # def __local_copy_process(self, target_path: str, dest_path: str) -> None:
     #     shutil.copy(target_path, dest_path)
@@ -43,6 +44,7 @@ class GcsInterface:
 
     def upload_json(self, gcs_path: str, contents: str) -> None:
         blob = self.bucket.blob(gcs_path)
+        print(blob, type(blob))
         try:
             blob.upload_from_string(contents, content_type="application/json")
         except Exception as e:
@@ -57,10 +59,10 @@ class GcsInterface:
     #     # gcp_full_path = f"/app/tmp/cloud-storage/data/{gcs_path}"
     #     # self.__local_copy_process(gcp_full_path, local_path)
 
-    # def get_file(self, blob_path: str) -> Optional[storage.Blob]:
-    #     bucket = self.client.bucket(self.bucket_name)
-    #     blob = bucket.get_blob(blob_path)
-    #     return blob
+    def get_file(self, blob_path: str) -> Optional[storage.Blob]:
+        bucket = self.client.bucket(self.bucket_name)
+        blob = bucket.get_blob(blob_path)
+        return blob
 
     # def delete_file(self, blob: storage.Blob) -> None:
     #     blob.delete()

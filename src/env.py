@@ -11,6 +11,10 @@ BUCKET_NAME = ""
 if os.getenv("BUCKET_NAME"):
     BUCKET_NAME = os.getenv("BUCKET_NAME")
 
+TOPIC_NAME = ""
+if os.getenv("TOPIC_NAME"):
+    TOPIC_NAME = os.getenv("TOPIC_NAME")
+
 YOUTUBE_API_SERVICE_NAME = ""
 if os.getenv("YOUTUBE_API_SERVICE_NAME"):
     YOUTUBE_API_SERVICE_NAME = os.getenv("YOUTUBE_API_SERVICE_NAME")

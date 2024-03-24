@@ -47,7 +47,9 @@ class YoutubeApiRequest:
             maxResults=50,
             regionCode="JP"
         )
-        return request.execute()
+
+        res = request.execute()
+        return res
 
 
 if __name__ == "__main__":

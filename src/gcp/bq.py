@@ -42,7 +42,7 @@ class BqInterface:
         self,
         dataset_name: str,
         table_name: str,
-        data: list[dict],
+        data: list[dict]
     ) -> None:
         job_config = bigquery.LoadJobConfig(
             schema=MOST_POPULAR_TABLE_SCHEMA,

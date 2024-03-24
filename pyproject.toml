@@ -16,6 +16,9 @@ fastapi = "^0.110.0"
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
 gunicorn = "^21.2.0"
 google-cloud-secret-manager = "^2.18.2"
+google-cloud-pubsub = "^2.19.7"
+pydantic = "^2.6.3"
+loguru = "^0.7.2"
 
 
 [tool.poetry.group.dev.dependencies]

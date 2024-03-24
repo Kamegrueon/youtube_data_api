@@ -4,5 +4,9 @@ services:
     build: .
     container_name: "cloudrun-api"
     working_dir: "/app"
+    tty: true
+    stdin_open: true
+    ports:
+      - "8080:8080"
     env_file:
       - .env
