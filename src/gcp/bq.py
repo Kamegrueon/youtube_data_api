@@ -1,15 +1,7 @@
 """bigqueryを操作するモジュール"""
-import json
-
 from google.cloud import bigquery
-from google.oauth2.service_account import Credentials
-
 from gcp.config.bq_schema import MOST_POPULAR_TABLE_SCHEMA
-from gcp.config.gcp_config import GOOGLE_KEY_PATH, PROJECT_ID
-from utils.extract_most_popular import (
-    extract_most_popular,
-    extract_datetime_from_file_name
-)
+
 
 # client_options = ClientOptions(
 # api_endpoint="http://host.docker.internal:9050"
@@ -19,15 +11,9 @@ from utils.extract_most_popular import (
 # bq --api http://0.0.0.0:9050 --project_id=youtube_data_api shell
 
 
-class BQ:
+class BqInterface:
     def __init__(self, project_id: str) -> None:
-        credentials = Credentials.from_service_account_file(GOOGLE_KEY_PATH)
-        self.client = bigquery.Client(
-            # credentials=AnonymousCredentials(),
-            credentials=credentials,
-            project=project_id,
-            # client_options=client_options
-        )
+        self.client = bigquery.Client(project=project_id)
 
     def generate_dataset(self, dataset_name: str) -> None:
         # [demo]という名称でDataSetを作成
@@ -48,7 +34,7 @@ class BQ:
         )
 
         table.clustering_fields = ["CHANNEL_ID", "CATEGORY_ID"]
-        table.description = "DEmo Data"
+        table.description = "Demo Data"
 
         self.client.create_table(table)
 
@@ -56,7 +42,7 @@ class BQ:
         self,
         dataset_name: str,
         table_name: str,
-        data: list[dict],
+        data: list[dict]
     ) -> None:
         job_config = bigquery.LoadJobConfig(
             schema=MOST_POPULAR_TABLE_SCHEMA,
@@ -72,49 +58,49 @@ class BQ:
         job.result()
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
     # from api.youtube_api import YoutubeApiRequest
-    from gcp.gcs import GCS
-    BUCKET_NAME = PROJECT_ID
+    # from gcp.gcs import GcsInterface
+    # BUCKET_NAME = PROJECT_ID
 
-    # youtube = YoutubeApiRequest()
-    gcs = GCS(bucket_name=BUCKET_NAME)
-    bq = BQ(project_id=PROJECT_ID)
+    # # youtube = YoutubeApiRequest()
+    # gcs = GCS(bucket_name=BUCKET_NAME)
+    # bq = BqInterface(project_id=PROJECT_ID)
     # youtube.get_youtube_data_to_json()
     # LOCAL_FILE_PATH =
     # f"{youtube.output_path}/{youtube.date_str}_popular.json"
     # GCS_FILE_PATH = f"{gcs.bucket_name}/{youtube.date_str}_popular.json"
-    GCS_FILE_PATH = "202305020957_popular.json"
+    # GCS_FILE_PATH = "202305020957_popular.json"
 
     # gcs.upload_file(
     #     gcs_path=GCS_FILE_PATH,
     #     local_path=LOCAL_FILE_PATH
     # )
 
-    blob = gcs.get_file(GCS_FILE_PATH)
+    # blob = gcs.get_file(GCS_FILE_PATH)
 
-    dataset_name = "videos"
-    table_name = "most_popular"
+    # dataset_name = "videos"
+    # table_name = "most_popular"
 
-    # print("Deleting Dataset if exists...")
-    # bq.client.delete_dataset(dataset_name, not_found_ok=True)
-    # bq.generate_dataset(dataset_name)
+    # # print("Deleting Dataset if exists...")
+    # # bq.client.delete_dataset(dataset_name, not_found_ok=True)
+    # # bq.generate_dataset(dataset_name)
 
-    print("Deleting table if exists...")
-    bq.client.delete_table(f"{dataset_name}.{table_name}", not_found_ok=True)
-    bq.generate_table(dataset_name, table_name)
+    # print("Deleting table if exists...")
+    # bq.client.delete_table(f"{dataset_name}.{table_name}", not_found_ok=True)
+    # bq.generate_table(dataset_name, table_name)
 
-    if blob is not None:
-        with blob.open(mode="r", encoding='utf-8') as f:
-            data = json.load(f)
-            created_at = extract_datetime_from_file_name(blob.name)
-            extract_data = extract_most_popular(data, created_at)
+    # if blob is not None:
+    #     with blob.open(mode="r", encoding='utf-8') as f:
+    #         data = json.load(f)
+    #         created_at = extract_datetime_from_file_name(blob.name)
+    #         extract_data = extract_most_popular(data, created_at)
 
-    from pprint import pprint
-    pprint(extract_data[0])
-    bq.insert_table_data(
-        dataset_name=dataset_name,
-        table_name=table_name,
-        data=extract_data,
-    )
+    # from pprint import pprint
+    # pprint(extract_data[0])
+    # bq.insert_table_data(
+    #     dataset_name=dataset_name,
+    #     table_name=table_name,
+    #     data=extract_data,
+    # )

@@ -1,34 +1,12 @@
-version: '3'
+version: "3"
 services:
-  python3:
+  api:
     build: .
-    container_name: 'python3'
-    working_dir: '/app'
+    container_name: "cloudrun-api"
+    working_dir: "/app"
     tty: true
-    environment:
-      - GCP_KEY_PATH=/app/youtube-data-api-385206-c3a94f0b7c7c.json
-    volumes:
-      - type: bind
-        source: '.'
-        target: '/app'
-
-  bq:
-    image: ghcr.io/goccy/bigquery-emulator:latest
-    # platform: linux/x86_64
-    container_name: 'bq'
+    stdin_open: true
     ports:
-      - "9050:9050"
-    command: "bigquery-emulator --project=youtube_data_api"
-
-  gcs:
-    # GCS用
-    container_name: gcs
-    image: fsouza/fake-gcs-server:1.43.0
-    tty: true
-    ports:
-      - "4443:4443"
-    volumes:
-      - type: bind
-        source: ./tmp/cloud-storage/data
-        target: /data/youtube
-    command: -scheme http --port 4443 --public-host host.docker.internal
+      - "8080:8080"
+    env_file:
+      - .env
