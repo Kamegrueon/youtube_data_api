@@ -3,7 +3,7 @@ import base64
 import json
 
 # Third Party Library
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from pydantic import BaseModel
 from typing import Optional
 from loguru import logger
@@ -74,14 +74,12 @@ def check_pubsub_message(request) -> str:
 
 
 @app.post("/invoke/transfer")
-async def invoke_transfer_to_gcs(background_tasks: BackgroundTasks, request: PubsubRequest) -> None:
-    text = check_pubsub_message(request)
-
-    background_tasks.add_task(process_message, text)
+async def invoke_transfer_to_gcs(background_tasks: BackgroundTasks, request: Request) -> None:
+    background_tasks.add_task(process_message)
     return {"message": "Message received and processing started API Fetch to Save."}
 
 
-async def process_message(text):
+async def process_message():
     sc = SecretManagerInterface()
     developer_key = sc.get_secret(
         project_id=PROJECT_ID,
