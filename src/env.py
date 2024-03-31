@@ -4,16 +4,16 @@ import dotenv
 dotenv.load_dotenv()
 
 PROJECT_ID = ""
-if os.getenv("PROJECT_ID"):
-    PROJECT_ID = os.getenv("PROJECT_ID")
+if os.getenv("GOOGLE_PROJECT_ID"):
+    PROJECT_ID = os.getenv("GOOGLE_PROJECT_ID")
 
 BUCKET_NAME = ""
-if os.getenv("BUCKET_NAME"):
-    BUCKET_NAME = os.getenv("BUCKET_NAME")
+if os.getenv("CLOUD_STORAGE_BUCKET"):
+    BUCKET_NAME = os.getenv("CLOUD_STORAGE_BUCKET")
 
 TOPIC_NAME = ""
-if os.getenv("TOPIC_NAME"):
-    TOPIC_NAME = os.getenv("TOPIC_NAME")
+if os.getenv("PUBSUB_GENERATE_ANNOTATIONS_TOPIC"):
+    TOPIC_NAME = os.getenv("PUBSUB_GENERATE_ANNOTATIONS_TOPIC")
 
 YOUTUBE_API_SERVICE_NAME = ""
 if os.getenv("YOUTUBE_API_SERVICE_NAME"):

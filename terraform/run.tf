@@ -42,7 +42,30 @@ resource "google_cloud_run_v2_service" "api" {
         name  = "CLOUD_STORAGE_BUCKET"            # Cloud Storageバケット名を指定します。
         value = google_storage_bucket.bucket.name # Cloud Storageバケットの名前を設定します。
       }
+      env {
+        name  = "YOUTUBE_API_SERVICE_NAME"
+        value = "youtube"
+      }
+      env {
+        name  = "YOUTUBE_API_VERSION"
+        value = "v3"
+      }
+      env {
+        name  = "SECRET_ID"
+        value = "YOUTUBE_API_KEY"
+      }
+
+      env {
+        name  = "SECRET_YOUTUBE_API_VERSION"
+        value = "1"
+      }
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].containers[0].image
+    ]
   }
 
   # サービスに対するトラフィックのターゲットを設定します。
