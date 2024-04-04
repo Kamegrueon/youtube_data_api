@@ -51,3 +51,17 @@ variable "container_image" {
   type        = string
   default     = ""
 }
+
+##########################################
+# IAM
+##########################################
+
+variable "app_roles" {
+  default = [
+    "roles/bigquery.jobUser",
+    "roles/run.serviceAgent",
+    "roles/pubsub.publisher",
+    "roles/storage.objectCreator"
+  ]
+
+}
