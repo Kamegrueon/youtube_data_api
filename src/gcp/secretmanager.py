@@ -16,6 +16,7 @@ class SecretManagerInterface:
             secret_id,
             version_id
         )
+        print(path)
 
         response = self.client.access_secret_version(
             request={"name": path}
