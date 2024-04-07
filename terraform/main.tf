@@ -1,8 +1,8 @@
 locals {
   terraformadmin_project_id = var.gcp_project_id
   terraform_service_account = "terraform@youtube-data-api-385206.iam.gserviceaccount.com"
-
-  github_repository = "Kamegrueon/youtube_data_api"
+  github_repo_owner         = "Kamegrueon"
+  github_repository         = "youtube_data_api"
   #   project_id        = "myproject"
   #   region            = "asia-northeast1"
 
@@ -63,10 +63,9 @@ resource "google_iam_workload_identity_pool_provider" "myprovider" {
   workload_identity_pool_provider_id = "myprovider"
   display_name                       = "myprovider"
   description                        = "GitHub Actions で使用"
-
+  attribute_condition                = "assertion.repository_owner == \"${local.github_repo_owner}\""
   attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repository"
+    "google.subject" = "assertion.repository"
   }
 
   oidc {
@@ -81,7 +80,7 @@ data "google_service_account" "terraform_sa" {
 resource "google_service_account_iam_member" "terraform_sa" {
   service_account_id = data.google_service_account.terraform_sa.id
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.mypool.name}/attribute.repository/${local.github_repository}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.mypool.name}/attribute.repository/${local.github_repo_owner}/${local.github_repository}"
 }
 
 # https://registry.terraform.io/modules/terraform-google-modules/project-factory/google/14.0.0/submodules/project_services
