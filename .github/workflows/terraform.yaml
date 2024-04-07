@@ -29,7 +29,7 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          workload_identity_provider: 'projects/youtube-data-api-385206/locations/global/workloadIdentityPools/mypool/providers/myprovider'
+          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
           service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
   
       # https://github.com/hashicorp/setup-terraform
@@ -50,7 +50,7 @@ jobs:
   
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color
+        run: terraform plan -no-color -var="TAG=v0.3.1" 
         continue-on-error: true
   
       - name: Comment Terraform Plan
@@ -90,4 +90,4 @@ jobs:
       # main ブランチに push した場合にだけ terraform apply も実行される
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -auto-approve -input=false -var="TAG=v0.3.1" 
