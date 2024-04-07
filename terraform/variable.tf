@@ -41,6 +41,7 @@ variable "invoke_transfer_url_path" {
   default = "/invoke/transfer"
 }
 
+variable "TAG" {}
 
 ##########################################
 # Cloud Run
@@ -59,9 +60,11 @@ variable "container_image" {
 variable "app_roles" {
   default = [
     "roles/bigquery.jobUser",
+    "roles/bigquery.dataEditor",
     "roles/run.serviceAgent",
     "roles/pubsub.publisher",
-    "roles/storage.objectCreator"
+    "roles/storage.objectCreator",
+    "roles/secretmanager.secretAccessor"
   ]
 
 }

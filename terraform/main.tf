@@ -42,6 +42,7 @@ data "google_service_account_access_token" "default" {
 }
 
 
+# https://registry.terraform.io/modules/terraform-google-modules/project-factory/google/14.0.0/submodules/project_services
 module "enable_google_apis" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "~> 14.0"
