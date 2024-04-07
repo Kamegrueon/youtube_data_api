@@ -10,7 +10,7 @@ on:
 # 作業ディレクトリの指定
 defaults:
   run:
-    working-directory: ./
+    working-directory: ./terraform
   
 # ジョブ / ステップ / アクションの定義
 jobs:
