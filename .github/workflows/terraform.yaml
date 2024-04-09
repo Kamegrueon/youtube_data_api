@@ -10,6 +10,8 @@ on:
 env:
   # GCPのPROJECT_ID
   PROJECT_ID: youtube-data-api-385206
+  # Region
+  REGION: asia-northeast1
   # Artifact RegistryのRepository名（事前に作成しておく）
   REPOSITORY: youtube-data-api-repository
 
@@ -45,13 +47,13 @@ jobs:
       - name: 'Authorize Docker push'
         # Artifact Registryにpushできるように認証をおこなう
         # Container Registryのときには不要だったArtifact RegistryではRegionの指定が必須
-        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
       - name: build and push
         run: |-
           cd ..
-          docker build -t asia-northeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }} ./
-          docker push us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }} ./
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
 
 
       # https://github.com/hashicorp/setup-terraform
