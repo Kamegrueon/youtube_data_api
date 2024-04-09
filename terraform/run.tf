@@ -1,7 +1,7 @@
 # ローカル変数を使用して、コンテナのイメージを定義します。
 # コンテナイメージは、指定されたvar.container_imageが空でない場合はそれを、そうでない場合はGoogle Artifact Registryからのイメージを使用します。
 locals {
-  image = var.container_image != "" ? var.container_image : "${google_artifact_registry_repository.repository.location}-docker.pkg.dev/${var.gcp_project_id}/${google_artifact_registry_repository.repository.name}/${var.app_name}:${var.TAG}"
+  image = var.container_image != "" ? var.container_image : "${google_artifact_registry_repository.repository.location}-docker.pkg.dev/${var.gcp_project_id}/${google_artifact_registry_repository.repository.name}/${var.app_name}:${var.docker_tag}"
 }
 
 # Cloud Run v2 サービスを定義します。このサービスはAPIとして公開され、内部専用のトラフィックを受け付けます。
