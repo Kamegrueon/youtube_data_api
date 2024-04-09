@@ -41,8 +41,6 @@ variable "invoke_transfer_url_path" {
   default = "/invoke/transfer"
 }
 
-variable "TAG" {}
-
 ##########################################
 # Cloud Run
 ##########################################

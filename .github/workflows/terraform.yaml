@@ -6,7 +6,13 @@ on:
     branches:
       - main
   pull_request:
-  
+
+env:
+  # GCPのPROJECT_ID
+  PROJECT_ID: youtube-data-api-385206
+  # Artifact RegistryのRepository名（事前に作成しておく）
+  REPOSITORY: youtube-data-api-repository
+
 # 作業ディレクトリの指定
 defaults:
   run:
@@ -31,28 +37,44 @@ jobs:
         with:
           workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
           service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
-  
+
+      - id: 'setup'
+        name: 'Setup Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+
+      - name: 'Authorize Docker push'
+        # Artifact Registryにpushできるように認証をおこなう
+        # Container Registryのときには不要だったArtifact RegistryではRegionの指定が必須
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+
+      - name: build and push
+        run: |-
+          cd ..
+          docker build -t asia-northeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }} ./
+          docker push us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
+
+
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v2
-  
+
       - name: Terraform fmt
         id: fmt
         run: terraform fmt -check -recursive
         continue-on-error: true
-  
+
       - name: Terraform Init
         id: init
         run: terraform init
-  
+
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
-  
+
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var="TAG=v0.3.1" 
+        run: terraform plan -no-color -var=TAG=${{ github.sha }}
         continue-on-error: true
-  
+
       - name: Comment Terraform Plan
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
@@ -90,4 +112,4 @@ jobs:
       # main ブランチに push した場合にだけ terraform apply も実行される
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false -var="TAG=v0.3.1" 
+        run: terraform apply -auto-approve -input=false -var=${{ github.sha }}
