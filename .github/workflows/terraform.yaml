@@ -76,7 +76,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var=TAG=${{ github.sha }}
+        run: terraform plan -no-color -var=docker_tag=${{ github.sha }}
         continue-on-error: true
 
       - name: Comment Terraform Plan
