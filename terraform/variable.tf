@@ -41,8 +41,6 @@ variable "invoke_transfer_url_path" {
   default = "/invoke/transfer"
 }
 
-variable "TAG" {}
-
 ##########################################
 # Cloud Run
 ##########################################
@@ -52,6 +50,8 @@ variable "container_image" {
   type        = string
   default     = ""
 }
+
+variable "docker_tag" {}
 
 ##########################################
 # IAM
