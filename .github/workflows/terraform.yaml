@@ -116,4 +116,4 @@ jobs:
       # main ブランチに push した場合にだけ terraform apply も実行される
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false -var=${{ github.sha }}
+        run: terraform apply -auto-approve -var=docker_tag=${{ github.sha }}
