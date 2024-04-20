@@ -62,12 +62,6 @@ resource "google_cloud_run_v2_service" "api" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [
-      template[0].containers[0].image
-    ]
-  }
-
   # サービスに対するトラフィックのターゲットを設定します。
   traffic {
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST" # トラフィックのタイプを指定します。
