@@ -86,6 +86,9 @@ jobs:
     steps:
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v2
+        
+      - name: ls
+        run: ls
 
       - name: Terraform fmt
         id: fmt
