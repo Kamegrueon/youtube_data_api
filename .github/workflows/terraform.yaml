@@ -72,6 +72,7 @@ jobs:
 
 
   terraform-workflow:
+    needs: docker-buildx-workflow
     runs-on: ubuntu-latest
     defaults:
       run:
