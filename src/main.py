@@ -52,7 +52,6 @@ class PubsubRequest(BaseModel):
 def check_pubsub_message(request) -> str:
     envelope = json.loads(request.json())
     logger.info(f"envelope: {envelope} type: {type(envelope)}")
-    logger.info(f"envelope: test type: testtest")
     # envelope = await request.json()
     if not envelope:
         msg = "no Pub/Sub message received"
@@ -131,9 +130,9 @@ async def load_bq(file_path):
     dataset_name = "videos"
     table_name = "most_popular"
 
-    logger.info("Deleting table if exists...")
-    bq.client.delete_table(f"{dataset_name}.{table_name}", not_found_ok=True)
-    bq.generate_table(dataset_name, table_name)
+    # logger.info("Deleting table if exists...")
+    # bq.client.delete_table(f"{dataset_name}.{table_name}", not_found_ok=True)
+    # bq.generate_table(dataset_name, table_name)
 
     if blob is not None:
         with blob.open(mode="r", encoding='utf-8') as f:
