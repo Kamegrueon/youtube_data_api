@@ -22,8 +22,11 @@ defaults:
   
 # ジョブ / ステップ / アクションの定義
 jobs:
-  terraform-workflow:
+  docker-buildx-workflow:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
     permissions:
       id-token: write
       contents: read
@@ -57,7 +60,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ../
+          context: .
           file: ./Dockerfile
           push: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
@@ -68,6 +71,18 @@ jobs:
       #     docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
 
 
+  terraform-workflow:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+  
+    # Workload Identity 連携
+    steps:
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v2
 
