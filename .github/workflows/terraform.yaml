@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform
+        working-directory: ./terraform
     permissions:
       id-token: write
       contents: read
@@ -86,9 +86,6 @@ jobs:
     steps:
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v2
-        
-      - name: ls
-        run: ls
 
       - name: Terraform fmt
         id: fmt
