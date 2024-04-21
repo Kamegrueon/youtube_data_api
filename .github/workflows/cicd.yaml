@@ -102,6 +102,16 @@ jobs:
           workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
           service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
 
+      - name: Set Variable
+        id: set_variable
+        run: |
+          if [ needs.changes.outputs.src == 'true' ]; then
+            echo "::set-output name=tag::${{github.sha}}"
+          else
+            echo "::set-output name=tag::latest"
+          fi
+        shell: bash
+
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v2
 
@@ -120,7 +130,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var=docker_tag=${{ if needs.changes.outputs.src == 'true' { 'latest' } else { github.sha } }}
+        run: terraform plan -no-color -var=docker_tag=${{ steps.set_variable.outputs.tag }}
         continue-on-error: true
 
       - name: print
@@ -163,4 +173,4 @@ jobs:
       # main ブランチに push した場合にだけ terraform apply も実行される
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -var=docker_tag=${{ if needs.changes.outputs.src == 'true' { 'latest' } else { github.sha } }}
+        run: terraform apply -auto-approve -var=docker_tag=${{ steps.set_variable.outputs.tag }}
