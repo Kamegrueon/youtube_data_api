@@ -103,9 +103,9 @@ jobs:
         id: set_variable
         run: |
           if [ needs.changes.outputs.src == 'true' ]; then
-            echo "::set-output name=tag::${{github.sha}}"
+            echo "tag=${{github.sha}}" >> "$GITHUB_OUTPUT"
           else
-            echo "::set-output name=tag::latest"
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
           fi
         shell: bash
 
