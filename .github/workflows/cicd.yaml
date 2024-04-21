@@ -33,8 +33,6 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
     runs-on: ubuntu-latest
-    outputs:
-        tag: ${{ if needs.changes.outputs.src == 'true' { 'latest' } else { github.sha } }}
     defaults:
       run:
         working-directory: .
@@ -122,7 +120,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var=docker_tag=${{ needs.build.outputs.tag }}
+        run: terraform plan -no-color -var=docker_tag=${{ if needs.changes.outputs.src == 'true' { 'latest' } else { github.sha } }}
         continue-on-error: true
 
       - name: print
@@ -165,4 +163,4 @@ jobs:
       # main ブランチに push した場合にだけ terraform apply も実行される
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -var=docker_tag=${{ needs.build.outputs.tag }}
+        run: terraform apply -auto-approve -var=docker_tag=${{ if needs.changes.outputs.src == 'true' { 'latest' } else { github.sha } }}
