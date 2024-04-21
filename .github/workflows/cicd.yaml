@@ -17,6 +17,7 @@ env:
 
 # ジョブ / ステップ / アクションの定義
 jobs:
+  # src配下のファイルの変更検知
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -74,11 +75,6 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
-      # - name: build and push
-      #   run: |-
-      #     cd ..
-      #     docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }} ./
-      #     docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
 
   terraform:
     needs: build
