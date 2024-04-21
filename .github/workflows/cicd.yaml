@@ -1,5 +1,5 @@
-name: terraform
-  
+name: cicd
+
 # main ブランチへのPull Request と Merge をトリガーに指定
 on:
   push:
@@ -15,24 +15,38 @@ env:
   # Artifact RegistryのRepository名（事前に作成しておく）
   REPOSITORY: youtube-data-api-repository
 
-# 作業ディレクトリの指定
-defaults:
-  run:
-    working-directory: terraform
-  
 # ジョブ / ステップ / アクションの定義
 jobs:
-  terraform-workflow:
+  # src配下のファイルの変更検知
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          src:
+            - 'src/**'
+  build:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
     permissions:
       id-token: write
       contents: read
       pull-requests: write
-  
+
     # Workload Identity 連携
     steps:
       # https://cloud.google.com/iam/docs/using-workload-identity-federation#generate-automatic
       - uses: actions/checkout@v3
+
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
@@ -51,12 +65,49 @@ jobs:
         # Container Registryのときには不要だったArtifact RegistryではRegionの指定が必須
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
-      - name: build and push
-        run: |-
-          cd ..
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }} ./
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
+
+  terraform:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+    defaults:
+      run:
+        working-directory: ./terraform
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    # Workload Identity 連携
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
+          service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
+
+      - name: Set Variable
+        id: set_variable
+        run: |
+          if [ needs.changes.outputs.src == 'true' ]; then
+            echo "::set-output name=tag::${{github.sha}}"
+          else
+            echo "::set-output name=tag::latest"
+          fi
+        shell: bash
 
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v2
@@ -76,8 +127,11 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var=docker_tag=${{ github.sha }}
+        run: terraform plan -no-color -var=docker_tag=${{ steps.set_variable.outputs.tag }}
         continue-on-error: true
+
+      - name: print
+        run: echo ${{ needs.build.outputs.tag }}
 
       - name: Comment Terraform Plan
         uses: actions/github-script@v6
@@ -116,4 +170,4 @@ jobs:
       # main ブランチに push した場合にだけ terraform apply も実行される
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -var=docker_tag=${{ github.sha }}
+        run: terraform apply -auto-approve -var=docker_tag=${{ steps.set_variable.outputs.tag }}
