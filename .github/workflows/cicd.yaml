@@ -1,6 +1,6 @@
 name: cicd
 
-# main ブランチへのPull Request と Merge をトリガーに指定
+# main ブランチへのPull Request と Merge をトリガーに指定 
 on:
   push:
     branches:
