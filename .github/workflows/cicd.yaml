@@ -111,7 +111,7 @@ jobs:
           if [ needs.changes.outputs.src == 'true' ]; then
             echo "tag=${{github.sha}}" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=$(gcloud artifacts docker tags list ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api --format='value(TAG)')" >> "$GITHUB_OUTPUT"
+            echo "tag=$(gcloud artifacts docker tags list --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api --format='value(TAG)')" >> "$GITHUB_OUTPUT"
           fi
         shell: bash
 
