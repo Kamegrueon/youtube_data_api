@@ -75,5 +75,3 @@ if __name__ == "__main__":
         developer_key=developer_key
     )
     print(youtube.get_youtube_data())
-    # print(youtube.date_str)
-    # youtube.get_youtube_data_to_json()

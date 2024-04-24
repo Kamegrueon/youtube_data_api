@@ -52,7 +52,6 @@ class PubsubRequest(BaseModel):
 def check_pubsub_message(request) -> str:
     envelope = json.loads(request.json())
     logger.info(f"envelope: {envelope} type: {type(envelope)}")
-    # envelope = await request.json()
     if not envelope:
         msg = "no Pub/Sub message received"
         logger.info(f"error: {msg}")

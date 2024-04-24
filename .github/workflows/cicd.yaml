@@ -99,13 +99,19 @@ jobs:
           workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
           service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
 
+      - id: 'setup'
+        name: 'Setup Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
       - name: Set Variable
         id: set_variable
         run: |
           if [ needs.changes.outputs.src == 'true' ]; then
-            echo "::set-output name=tag::${{github.sha}}"
+            echo "tag=${{github.sha}}" >> "$GITHUB_OUTPUT"
           else
-            echo "::set-output name=tag::latest"
+            echo "tag=$(gcloud artifacts docker tags list ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api --format='value(TAG)')" >> "$GITHUB_OUTPUT"
           fi
         shell: bash
 
@@ -131,7 +137,7 @@ jobs:
         continue-on-error: true
 
       - name: print
-        run: echo ${{ needs.build.outputs.tag }}
+        run: echo ${{ steps.set_variable.outputs.tag }}
 
       - name: Comment Terraform Plan
         uses: actions/github-script@v6
