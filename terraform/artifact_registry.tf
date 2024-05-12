@@ -6,4 +6,20 @@ resource "google_artifact_registry_repository" "repository" {
   repository_id = "${var.app_name}-repository"
 
   depends_on = [module.enable_google_apis]
+
+  cleanup_policy_dry_run = false
+  cleanup_policies {
+    id     = "delete-prerelease"
+    action = "DELETE"
+    condition {
+      tag_state = "ANY"
+    }
+  }
+  cleanup_policies {
+    id     = "keep-minimum-versions"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 3
+    }
+  }
 }
