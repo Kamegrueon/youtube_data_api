@@ -22,7 +22,6 @@ class SecretManagerInterface:
             request={"name": path}
         )
 
-        # response = self.client.access_secret_version(name=path)
         secret_value = response.payload.data.decode('UTF-8')
 
         return secret_value
