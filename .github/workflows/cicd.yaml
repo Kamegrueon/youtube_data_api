@@ -75,6 +75,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
+          platforms: linux/amd64
 
   terraform:
     needs: build
@@ -105,14 +106,13 @@ jobs:
         with:
           version: '>= 363.0.0'
 
-      - name: Set Variable
-        id: set_variable
+      - name: Get Latest Tag
+        id: get-latest-tag
         run: |
-          if [ needs.changes.outputs.src == 'true' ]; then
-            echo "tag=${{github.sha}}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=$(gcloud artifacts docker tags list --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api --format='value(TAG)')" >> "$GITHUB_OUTPUT"
-          fi
+          LATEST_TAG=$(gcloud artifacts docker tags list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api)
+          echo "Latest image tag is $LATEST_TAG"
+          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
         shell: bash
 
       # https://github.com/hashicorp/setup-terraform
@@ -133,11 +133,11 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -var=docker_tag=${{ steps.set_variable.outputs.tag }}
+        run: terraform plan -no-color -var=docker_tag=${{ steps.get-latest-tag.outputs.tag }}
         continue-on-error: true
 
       - name: print
-        run: echo ${{ steps.set_variable.outputs.tag }}
+        run: echo ${{ steps.get-latest-tag.outputs.tag }}
 
       - name: Comment Terraform Plan
         uses: actions/github-script@v6
@@ -176,4 +176,4 @@ jobs:
       # main ブランチに push した場合にだけ terraform apply も実行される
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -var=docker_tag=${{ steps.set_variable.outputs.tag }}
+        run: terraform apply -auto-approve -var=docker_tag=${{ steps.get-latest-tag.outputs.tag }}
