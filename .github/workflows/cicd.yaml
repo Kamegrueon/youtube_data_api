@@ -32,7 +32,7 @@ jobs:
             - 'src/**'
   build:
     needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
+    if: ${{ needs.changes.outputs.src == 'true' }} && github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     defaults:
       run:
