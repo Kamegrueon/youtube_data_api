@@ -49,7 +49,7 @@ jobs:
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
           service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
@@ -116,7 +116,7 @@ jobs:
         shell: bash
 
       # https://github.com/hashicorp/setup-terraform
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform fmt
         id: fmt
