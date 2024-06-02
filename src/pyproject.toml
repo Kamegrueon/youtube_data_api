@@ -11,9 +11,8 @@ google-api-python-client = "^2.86.0"
 pytz = "^2023.3"
 google-cloud-storage = "^2.8.0"
 google-cloud-bigquery = "^3.10.0"
-isort = "^5.13.2"
 fastapi = "^0.110.0"
-uvicorn = {extras = ["standard"], version = "^0.27.1"}
+uvicorn = { extras = ["standard"], version = "^0.27.1" }
 gunicorn = "^21.2.0"
 google-cloud-secret-manager = "^2.18.2"
 google-cloud-pubsub = "^2.19.7"
@@ -22,10 +21,10 @@ loguru = "^0.7.2"
 
 
 [tool.poetry.group.dev.dependencies]
-jupyter = "^1.0.0"
 python-dotenv = "^1.0.0"
 flake8 = "^6.0.0"
 pyproject-flake8 = "^6.0.0.post1"
+isort = "^5.13.2"
 flake8-isort = "^6.0.0"
 flake8-bugbear = "^23.3.23"
 flake8-builtins = "^2.1.0"
@@ -58,7 +57,7 @@ warn_unused_ignores = true
 # 冗長なキャストに警告
 warn_redundant_casts = true
 # 注釈なしがある関数の定義を禁止
-check_untyped_defs=true
+check_untyped_defs = true
 
 [tool.black]
 line-length = 79
@@ -67,9 +66,9 @@ line-length = 79
 profile = "black"
 line_length = 79
 # 各ライブラリ群の説明を追記する
-import_heading_stdlib      = "Standard Library"
-import_heading_thirdparty  = "Third Party Library"
-import_heading_firstparty  = "First Party Library"
+import_heading_stdlib = "Standard Library"
+import_heading_thirdparty = "Third Party Library"
+import_heading_firstparty = "First Party Library"
 import_heading_localfolder = "Local Library"
 # from third_party import lib1, lib2...のような記述時の改行方法の設定(https://pycqa.github.io/isort/docs/configuration/multi_line_output_modes.html)
 multi_line_output = 3
@@ -81,7 +80,7 @@ max-line-length = 79
 # E203: ":"の前の空白を入れないルール
 # W503: 演算子の前に改行しないようにするルール
 extend-ignore = ["E203", "W503", "I005"]
-exclude = [".venv", ".git", "__pycache__",]
+exclude = [".venv", ".git", "__pycache__"]
 max-complexity = 10
 
 [build-system]
