@@ -72,7 +72,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./src
-          file: Dockerfile.prd
+          file: ./src/Dockerfile.prd
           push: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
           platforms: linux/amd64
