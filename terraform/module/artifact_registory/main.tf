@@ -5,8 +5,6 @@ resource "google_artifact_registry_repository" "repository" {
   project       = var.gcp_project_id
   repository_id = "${var.app_name}-repository"
 
-  depends_on = [module.enable_google_apis]
-
   cleanup_policy_dry_run = false
   cleanup_policies {
     id     = "delete-prerelease"

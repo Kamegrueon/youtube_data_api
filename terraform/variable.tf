@@ -10,12 +10,10 @@ variable "gcp_project_name" {
 
 variable "gcp_project_id" {
   type    = string
-  default = "youtube-data-api-385206"
 }
 
 variable "gcp_region" {
   type    = string
-  default = "asia-northeast1"
 }
 
 variable "enable_apis" {
@@ -45,11 +43,7 @@ variable "invoke_transfer_url_path" {
 # Cloud Run
 ##########################################
 
-variable "container_image" {
-  description = "Container image to deploy, must be in the same project as the app or public. If not specified, a default image will be used"
-  type        = string
-  default     = ""
-}
+variable "container_image" {}
 
 variable "docker_tag" {}
 
