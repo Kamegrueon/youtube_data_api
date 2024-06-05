@@ -11,14 +11,12 @@ resource "google_cloud_scheduler_job" "invoke-transfer" {
 
   http_target {
     http_method = "POST"
-    uri         = "${google_cloud_run_v2_service.api.uri}${var.invoke_transfer_url_path}"
+    uri         = "${var.cloud_run_api_uri}${var.invoke_transfer_url_path}"
 
     oidc_token {
-      service_account_email = google_service_account.invoker.email
-      audience              = "${google_cloud_run_v2_service.api.uri}${var.invoke_transfer_url_path}"
+      service_account_email = var.service_account_invoker_email
+      audience              = "${var.cloud_run_api_uri}${var.invoke_transfer_url_path}"
     }
   }
-
-  depends_on = [module.enable_google_apis]
 
 }
