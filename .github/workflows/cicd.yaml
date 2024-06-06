@@ -51,7 +51,7 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
+          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/youtube-data-api-pool/providers/youtube-data-api-provider'
           service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
 
       - id: 'setup'
@@ -97,7 +97,7 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/mypool/providers/myprovider'
+          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/youtube-data-api-pool/providers/youtube-data-api-provider'
           service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
 
       - id: 'setup'

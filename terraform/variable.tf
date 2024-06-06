@@ -9,11 +9,11 @@ variable "gcp_project_name" {
 }
 
 variable "gcp_project_id" {
-  type    = string
+  type = string
 }
 
 variable "gcp_region" {
-  type    = string
+  type = string
 }
 
 variable "enable_apis" {
