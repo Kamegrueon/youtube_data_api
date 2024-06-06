@@ -1,8 +1,8 @@
 # メッセージのサブスクリプションを定義します。
 # サブスクリプション名は、アプリケーションの名前に"-sub"が追加されたものになります。
 resource "google_pubsub_subscription" "main" {
-  name  = "${var.app_name}-sub"         # サブスクリプションの名前は、アプリケーション名に"-sub"が追加されたものになります。
-  topic = var.pubsub_topic_name # このサブスクリプションが購読するトピックを指定します。
+  name  = "${var.app_name}-sub" # サブスクリプションの名前は、アプリケーション名に"-sub"が追加されたものになります。
+  topic = var.pubsub_topic_id # このサブスクリプションが購読するトピックを指定します。
 
   # メッセージのアックを待つ時間を設定します。
   ack_deadline_seconds = 599
@@ -26,7 +26,7 @@ resource "google_pubsub_subscription" "main" {
   # デッドレターポリシーを設定します。
   dead_letter_policy {
     dead_letter_topic     = var.pubsub_topic_dead_letter_id # デッドレタートピックを指定します。
-    max_delivery_attempts = 5                                       # メッセージの最大配信試行回数を設定します。
+    max_delivery_attempts = 5                                 # メッセージの最大配信試行回数を設定します。
   }
 
   # Pushの設定を行います。

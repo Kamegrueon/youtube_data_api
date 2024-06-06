@@ -44,19 +44,19 @@ provider "google" {
 }
 
 # Workload Identity Pool 設定
-resource "google_iam_workload_identity_pool" "mypool" {
+resource "google_iam_workload_identity_pool" "youtube_data_api_pool" {
   project                   = var.gcp_project_id
-  workload_identity_pool_id = "mypool"
-  display_name              = "mypool"
+  workload_identity_pool_id = "youtube-data-api-pool"
+  display_name              = "youtube-data-api-pool"
   description               = "GitHub Actions で使用"
 }
 
 # Workload Identity Provider 設定
-resource "google_iam_workload_identity_pool_provider" "myprovider" {
+resource "google_iam_workload_identity_pool_provider" "youtube_data_api_provider" {
   project                            = var.gcp_project_id
-  workload_identity_pool_id          = google_iam_workload_identity_pool.mypool.workload_identity_pool_id
-  workload_identity_pool_provider_id = "myprovider"
-  display_name                       = "myprovider"
+  workload_identity_pool_id          = google_iam_workload_identity_pool.youtube_data_api_pool.workload_identity_pool_id
+  workload_identity_pool_provider_id = "youtube-data-api-provider"
+  display_name                       = "youtube-data-api-provider"
   description                        = "GitHub Actions で使用"
   attribute_mapping = {
     "google.subject"       = "assertion.sub"
@@ -75,7 +75,7 @@ data "google_service_account" "terraform_sa" {
 
 resource "google_service_account_iam_member" "terraform_sa" {
   service_account_id = data.google_service_account.terraform_sa.id
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.mypool.name}/attribute.repository/${local.github_repo_owner}/${local.github_repository}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.youtube_data_api_pool.name}/attribute.repository/${local.github_repo_owner}/${local.github_repository}"
   role               = "roles/iam.workloadIdentityUser"
 }
 
@@ -129,7 +129,7 @@ module "pubsub_subscription" {
   gcp_region                    = var.gcp_region
   app_name                      = var.app_name
   cloud_run_uri                 = module.run.cloud_run_api_uri
-  pubsub_topic_name             = module.pubsub_topic.pubsub_topic_name
+  pubsub_topic_id               = module.pubsub_topic.pubsub_topic_id
   pubsub_topic_dead_letter_id   = module.pubsub_topic.pubsub_topic_dead_letter_id
   service_account_invoker_email = google_service_account.invoker.email
   service_account_app_email     = google_service_account.app.email
