@@ -1,84 +1,3 @@
-locals {
-  terraform_service_account = "terraform@youtube-data-api-385206.iam.gserviceaccount.com"
-  github_repo_owner         = "Kamegrueon"
-  github_repository         = "youtube_data_api"
-}
-
-terraform {
-  required_version = ">= 1.4.2"
-
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "5.28.0"
-    }
-  }
-  backend "gcs" {
-    bucket = "youtube-data-api-terraform"
-    prefix = "state"
-  }
-}
-
-# 有効期限の短いトークンを取得するためのプロバイダ
-provider "google" {
-  alias = "impersonation"
-  scopes = [
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/userinfo.email",
-  ]
-}
-
-# 有効期限の短いトークンを取得するためのデータ
-data "google_service_account_access_token" "default" {
-  provider               = google.impersonation
-  target_service_account = local.terraform_service_account
-  scopes                 = ["userinfo-email", "cloud-platform"]
-  lifetime               = "300s"
-}
-
-provider "google" {
-  project         = var.gcp_project_id
-  region          = var.gcp_region
-  access_token    = data.google_service_account_access_token.default.access_token
-  request_timeout = "60s"
-}
-
-# Workload Identity Pool 設定
-resource "google_iam_workload_identity_pool" "youtube_data_api_pool" {
-  project                   = var.gcp_project_id
-  workload_identity_pool_id = "youtube-data-api-pool"
-  display_name              = "youtube-data-api-pool"
-  description               = "GitHub Actions で使用"
-}
-
-# Workload Identity Provider 設定
-resource "google_iam_workload_identity_pool_provider" "youtube_data_api_provider" {
-  project                            = var.gcp_project_id
-  workload_identity_pool_id          = google_iam_workload_identity_pool.youtube_data_api_pool.workload_identity_pool_id
-  workload_identity_pool_provider_id = "youtube-data-api-provider"
-  display_name                       = "youtube-data-api-provider"
-  description                        = "GitHub Actions で使用"
-  attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repository"
-    "attribute.actor"      = "assertion.actor"
-  }
-
-  oidc {
-    issuer_uri = "https://token.actions.githubusercontent.com"
-  }
-}
-
-data "google_service_account" "terraform_sa" {
-  account_id = local.terraform_service_account
-}
-
-resource "google_service_account_iam_member" "terraform_sa" {
-  service_account_id = data.google_service_account.terraform_sa.id
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.youtube_data_api_pool.name}/attribute.repository/${local.github_repo_owner}/${local.github_repository}"
-  role               = "roles/iam.workloadIdentityUser"
-}
-
 # https://registry.terraform.io/modules/terraform-google-modules/project-factory/google/14.0.0/submodules/project_services
 # APIの有効化モジュール
 module "enable_google_apis" {
@@ -89,21 +8,7 @@ module "enable_google_apis" {
   enable_apis                 = var.enable_apis
   disable_services_on_destroy = false
   disable_dependent_services  = false
-
-  activate_apis = [
-    "artifactregistry.googleapis.com",
-    "bigquery.googleapis.com",
-    "cloudresourcemanager.googleapis.com", # Resource Manager
-    "cloudscheduler.googleapis.com",
-    "iamcredentials.googleapis.com", # Service Account Credentials
-    "iam.googleapis.com",
-    "sts.googleapis.com", # Security Token Service API
-    "pubsub.googleapis.com",
-    "run.googleapis.com",
-    "secretmanager.googleapis.com",
-    "storage.googleapis.com",
-    "youtube.googleapis.com"
-  ]
+  activate_apis               = var.activate_apis
 }
 
 module "artifact_registry" {

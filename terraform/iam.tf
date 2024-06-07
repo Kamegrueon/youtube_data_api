@@ -1,3 +1,9 @@
+resource "google_service_account_iam_member" "terraform_sa" {
+  service_account_id = data.google_service_account.terraform_sa.id
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.youtube_data_api_pool.name}/attribute.repository/${local.github_repo_owner}/${local.github_repository}"
+  role               = "roles/iam.workloadIdentityUser"
+}
+
 resource "google_service_account" "app" {
   # account id can not be longer than 28 characters
   account_id   = substr("${var.app_name}-sa", 0, 28)
