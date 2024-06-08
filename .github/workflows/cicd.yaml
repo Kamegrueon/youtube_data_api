@@ -38,7 +38,7 @@ jobs:
               - 'src/**'
       - run: |
           echo "${{ github.ref }}"
-          echo "${{ github.event.pull_request.base_ref }}"
+          echo "${{ github.base_ref }}"
       - name: Set environment string
         id: set-environment
         run: |
