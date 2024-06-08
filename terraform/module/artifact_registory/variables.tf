@@ -6,6 +6,10 @@ variable "gcp_region" {
   type = string
 }
 
-variable "app_name" {
+variable "repository_name" {
   type = string
+}
+
+variable "keep_count" {
+  type = number
 }

@@ -1,5 +1,5 @@
 resource "google_cloud_scheduler_job" "invoke-transfer" {
-  name        = "invoke-transfer"
+  name        = "${terraform.workspace}-invoke-transfer"
   project     = var.gcp_project_id
   schedule    = "0 12 * * *"
   description = "suggesting your lunch"
