@@ -40,7 +40,7 @@ jobs:
         id: set-environment
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.base_ref }}" == "main" ]]; then
-            echo "EMV_STRING=prd" >> "$GITHUB_OUTPUT"
+            echo "ENV_STRING=prd" >> "$GITHUB_OUTPUT"
             echo "REPOSITORY_NAME=prd-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.ref }}" == "refs/heads/dev" || "${{ github.base_ref }}" == "dev" ]]; then
             echo "ENV_STRING=dev" >> "$GITHUB_OUTPUT"
