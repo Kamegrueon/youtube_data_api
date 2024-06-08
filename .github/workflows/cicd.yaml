@@ -97,7 +97,7 @@ jobs:
           platforms: linux/amd64
 
   terraform:
-    needs: build
+    needs: [setup, build]
     runs-on: ubuntu-latest
     if: always()
     defaults:
