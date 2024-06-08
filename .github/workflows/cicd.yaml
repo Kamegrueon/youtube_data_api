@@ -48,7 +48,7 @@ jobs:
           fi
   build:
     needs: setup
-    if: needs.setup.outputs.src == 'true' || needs.setup.outputs.env_string == 'dev'
+    if: needs.setup.outputs.src == 'true' || github.ref == "refs/heads/dev"
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
