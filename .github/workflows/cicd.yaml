@@ -131,7 +131,7 @@ jobs:
           echo "Latest image tag is $LATEST_TAG"
           echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
-      # https://github.com/hashicorp/setup-terraform
+      # https://github.com/hashicorp/setup-terraform 
       - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform fmt
