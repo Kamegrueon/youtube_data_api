@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "bucket" {
-  name     = "${var.gcp_project_id}-${var.app_name}"
+  name     = "${terraform.workspace}-${var.gcp_project_id}-bucket"
   location = var.gcp_region
 }
 

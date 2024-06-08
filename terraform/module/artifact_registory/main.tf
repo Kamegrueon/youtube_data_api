@@ -1,9 +1,9 @@
 resource "google_artifact_registry_repository" "repository" {
-  description   = "Docker repository for ${var.app_name}"
+  description   = "Cloud Run repository for ${var.repository_name}"
   format        = "DOCKER"
   location      = var.gcp_region
   project       = var.gcp_project_id
-  repository_id = "${var.app_name}-repository"
+  repository_id = "${var.repository_name}-repository"
 
   cleanup_policy_dry_run = false
   cleanup_policies {
@@ -13,11 +13,14 @@ resource "google_artifact_registry_repository" "repository" {
       tag_state = "ANY"
     }
   }
-  cleanup_policies {
-    id     = "keep-minimum-versions"
-    action = "KEEP"
-    most_recent_versions {
-      keep_count = 3
+  dynamic "cleanup_policies" {
+    for_each = var.keep_count > 0 ? [var.keep_count] : []
+    content {
+      id     = "keep-minimum-versions"
+      action = "KEEP"
+      most_recent_versions {
+        keep_count = cleanup_policies.value
+      }
     }
   }
 }
