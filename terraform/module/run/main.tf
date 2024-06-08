@@ -1,14 +1,14 @@
 # ローカル変数を使用して、コンテナのイメージを定義します。
 # コンテナイメージは、指定されたvar.container_imageが空でない場合はそれを、そうでない場合はGoogle Artifact Registryからのイメージを使用します。
 locals {
-  image = var.container_image != "" ? var.container_image : "${var.repository_location}-docker.pkg.dev/${var.gcp_project_id}/${var.repository_name}/${var.app_name}:${var.docker_tag}"
+  image = var.container_image != "" ? var.container_image : "${var.repository_location}-docker.pkg.dev/${var.gcp_project_id}/${var.repository_name}/${terraform.workspace}-api-image:${var.docker_tag}"
 }
 
 # Cloud Run v2 サービスを定義します。このサービスはAPIとして公開され、内部専用のトラフィックを受け付けます。
 resource "google_cloud_run_v2_service" "api" {
-  name     = "${terraform.workspace}-${var.app_name}-api"           # サービスの名前を指定します。
-  location = var.gcp_region                  # サービスのデプロイ先のリージョンを指定します。
-  ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY" # 内部からのトラフィックのみ受け付けるように設定します。
+  name     = "${terraform.workspace}-${var.app_name}-api" # サービスの名前を指定します。
+  location = var.gcp_region                               # サービスのデプロイ先のリージョンを指定します。
+  ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"              # 内部からのトラフィックのみ受け付けるように設定します。
 
   # サービスのテンプレートを定義します。
   template {
