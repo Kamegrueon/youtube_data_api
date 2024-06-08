@@ -7,6 +7,9 @@ on:
       - main
       - dev
   pull_request:
+    branches:
+      - main
+      - dev
 
 env:
   # GCPのPROJECT_ID
@@ -94,7 +97,7 @@ jobs:
           context: "{{ defaultContext }}:src"
           file: Dockerfile.prd
           push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ jobs.set-config-job.outputs.repository_name }}/youtube-data-api:${{ github.sha }}
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.set-config-job.outputs.repository_name }}/youtube-data-api:${{ github.sha }}
           platforms: linux/amd64
 
   terraform:
@@ -129,7 +132,7 @@ jobs:
       - name: Get Latest Tag
         id: get-latest-tag
         run: |
-          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ jobs.set-config-job.outputs.repository_name }}/youtube-data-api)
+          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.set-config-job.outputs.repository_name }}/youtube-data-api)
           echo "Latest image tag is $LATEST_TAG"
           echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
