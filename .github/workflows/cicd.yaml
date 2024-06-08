@@ -48,7 +48,7 @@ jobs:
           fi
   build:
     needs: setup
-    if: needs.setup.outputs.src == 'true' && github.event_name == 'pull_request'
+    if: needs.setup.outputs.src == 'true'
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
@@ -191,8 +191,15 @@ jobs:
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-  
-      # main ブランチに push した場合にだけ terraform apply も実行される
+
+      # mainとdevにpushした場合は appｌｙ が実行される
       - name: Terraform Apply
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push'
         run: terraform apply -auto-approve -var=docker_tag=${{ steps.get-latest-tag.outputs.tag }}
+
+      # main ブランチに push した場合にだけ dev環境のdestroyが実行される
+      - name: Terraform Destroy Dev
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          terraform workspace select dev || terraform workspace new dev
+          terraform destroy -auto-approve -var=docker_tag=''
