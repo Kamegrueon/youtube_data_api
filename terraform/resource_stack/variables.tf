@@ -1,7 +1,7 @@
 ##########################################
 # Common
 ##########################################
-variable "terraform_sa" {
+variable "terraform_sa_email" {
   type = string
 }
 

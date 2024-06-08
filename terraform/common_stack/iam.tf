@@ -1,17 +1,11 @@
-locals {
-  terraform_service_account = "terraform@youtube-data-api-385206.iam.gserviceaccount.com"
-  github_repo_owner         = "Kamegrueon"
-  github_repository         = "youtube_data_api"
-}
-
 data "google_service_account" "terraform_sa" {
-  account_id = local.terraform_service_account
+  account_id = var.terraform_sa_email
 }
 
 resource "google_service_account_iam_member" "terraform_sa" {
   service_account_id = data.google_service_account.terraform_sa.id
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.youtube_data_api_pool.name}/attribute.repository/${local.github_repo_owner}/${local.github_repository}"
-  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.youtube_data_api_pool.name}/attribute.repository/${var.github_repo_owner}/${var.github_repository}"
+  role               = var.terraform_role
 }
 
 resource "google_service_account" "app" {
@@ -34,6 +28,6 @@ resource "google_service_account" "invoker" {
 
 resource "google_project_iam_member" "invoker" {
   project = var.gcp_project_id
-  role    = "roles/run.invoker"
+  role    = var.invoker_role
   member  = "serviceAccount:${google_service_account.invoker.email}"
 }

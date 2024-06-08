@@ -1,7 +1,15 @@
 ##########################################
 # Common
 ##########################################
-variable "terraform_sa" {
+variable "terraform_sa_email" {
+  type = string
+}
+
+variable "github_repo_owner" {
+  type = string
+}
+
+variable "github_repository" {
   type = string
 }
 
@@ -24,14 +32,19 @@ variable "enable_apis" {
 variable "activate_apis" {}
 
 ##########################################
-# Cloud Run
-##########################################
-
-variable "container_image" {}
-variable "docker_tag" {} # 実行時に引数として指定
-
-##########################################
 # IAM
 ##########################################
 
+variable "terraform_role" {}
 variable "app_roles" {}
+variable "invoker_role" {}
+
+##########################################
+# Artifact Registory
+##########################################
+variable "artifact_registry_configs" {
+  type = list(object({
+    name       = string
+    keep_count = number
+  }))
+}

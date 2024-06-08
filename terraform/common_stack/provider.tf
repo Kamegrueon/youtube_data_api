@@ -25,7 +25,7 @@ provider "google" {
 # 有効期限の短いトークンを取得するためのデータ
 data "google_service_account_access_token" "default" {
   provider               = google.impersonation
-  target_service_account = var.terraform_sa
+  target_service_account = var.terraform_sa_email
   scopes                 = ["userinfo-email", "cloud-platform"]
   lifetime               = "300s"
 }

@@ -6,7 +6,7 @@ locals {
 
 # Cloud Run v2 サービスを定義します。このサービスはAPIとして公開され、内部専用のトラフィックを受け付けます。
 resource "google_cloud_run_v2_service" "api" {
-  name     = "${var.app_name}-api"           # サービスの名前を指定します。
+  name     = "${terraform.workspace}-${var.app_name}-api"           # サービスの名前を指定します。
   location = var.gcp_region                  # サービスのデプロイ先のリージョンを指定します。
   ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY" # 内部からのトラフィックのみ受け付けるように設定します。
 
