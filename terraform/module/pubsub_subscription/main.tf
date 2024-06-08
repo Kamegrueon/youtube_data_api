@@ -1,8 +1,8 @@
 # メッセージのサブスクリプションを定義します。
 # サブスクリプション名は、アプリケーションの名前に"-sub"が追加されたものになります。
 resource "google_pubsub_subscription" "main" {
-  name  = "${var.app_name}-sub" # サブスクリプションの名前は、アプリケーション名に"-sub"が追加されたものになります。
-  topic = var.pubsub_topic_id   # このサブスクリプションが購読するトピックを指定します。
+  name  = "${terraform.workspace}-${var.app_name}-sub" # サブスクリプションの名前は、アプリケーション名に"-sub"が追加されたものになります。
+  topic = var.pubsub_topic_id                          # このサブスクリプションが購読するトピックを指定します。
 
   # メッセージのアックを待つ時間を設定します。
   ack_deadline_seconds = 599
