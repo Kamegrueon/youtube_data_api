@@ -60,8 +60,8 @@ module "run" {
   app_name                      = var.app_name
   service_account_app_email     = data.terraform_remote_state.common.outputs.app_service_account.email
   service_account_invoker_email = data.terraform_remote_state.common.outputs.invoker_service_account.email
-  repository_location           = data.terraform_remote_state.common.outputs.artifact_registory[terraform.workspace].repository_location
-  repository_name               = data.terraform_remote_state.common.outputs.artifact_registory[terraform.workspace].repository_name
+  repository_location           = data.terraform_remote_state.common.outputs.artifact_registory[terraform.workspace].repository.location
+  repository_name               = data.terraform_remote_state.common.outputs.artifact_registory[terraform.workspace].repository.name
   container_image               = var.container_image
   docker_tag                    = var.docker_tag
   storage_bucket_name           = module.storage.storage_bucket_name
