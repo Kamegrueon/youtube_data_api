@@ -48,7 +48,7 @@ jobs:
           fi
   build:
     needs: setup
-    if: needs.setup.outputs.src == 'true'
+    if: needs.setup.outputs.src == 'true' || needs.setup.outputs.env_string == 'dev'
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
