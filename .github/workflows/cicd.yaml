@@ -48,7 +48,7 @@ jobs:
           fi
   build:
     needs: setup
-    if: needs.setup.outputs.src == 'true' && github.event_name == 'pull_request'
+    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
@@ -90,11 +90,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: "{{ defaultContext }}:src"
-          file: Dockerfile.prd
+          context: ./src
+          file: ./src/Dockerfile.prd
           push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name }}/youtube-data-api:${{ github.sha }}
-          platforms: linux/amd64
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name }}/${{ needs.setup.outputs.env_string }}-api-image:${{ github.sha }}
 
   terraform:
     needs: [setup, build]
@@ -128,11 +127,11 @@ jobs:
       - name: Get Latest Tag
         id: get-latest-tag
         run: |
-          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}/youtube-data-api)
+          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}/${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}-api-image)
           echo "Latest image tag is $LATEST_TAG"
           echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
-      # https://github.com/hashicorp/setup-terraform
+      # https://github.com/hashicorp/setup-terraform 
       - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform fmt
@@ -192,8 +191,15 @@ jobs:
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-  
-      # main ブランチに push した場合にだけ terraform apply も実行される
+
+      # mainとdevにpushした場合は appｌｙ が実行される
       - name: Terraform Apply
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push'
         run: terraform apply -auto-approve -var=docker_tag=${{ steps.get-latest-tag.outputs.tag }}
+
+      # main ブランチに push した場合にだけ dev環境のdestroyが実行される
+      - name: Terraform Destroy Dev
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          terraform workspace select dev || terraform workspace new dev
+          terraform destroy -auto-approve -var=docker_tag=''
