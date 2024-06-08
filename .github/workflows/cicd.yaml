@@ -5,7 +5,11 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
+    branches:
+      - main
+      - dev
 
 env:
   # GCPのPROJECT_ID
@@ -13,26 +17,45 @@ env:
   # Region
   REGION: asia-northeast1
   # Artifact RegistryのRepository名（事前に作成しておく）
-  REPOSITORY: youtube-data-api-repository
+  BASE_REPOSITORY_NAME: youtube-data-api-repository
 
 # ジョブ / ステップ / アクションの定義
 jobs:
+  set-config-job:
+    runs-on: ubuntu-latest
+    outputs:
+      branch_string: ${{ steps.set-config.outputs.BRANCH_STRING }}
+      repository_name: ${{ steps.set-config.outputs.REPOSITORY_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set branch string
+        id: set-config
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event.pull_request.base_ref }}" == "main" ]]; then
+            echo "BRANCH_STRING=prd" >> "$GITHUB_OUTPUT"
+            echo "REPOSITORY_NAME=prd-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == "refs/heads/dev" || "${{ github.event.pull_request.base_ref }}" == "dev" ]]; then
+            echo "BRANCH_STRING=dev" >> "$GITHUB_OUTPUT"
+            echo "REPOSITORY_NAME=dev-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
+          fi
   # src配下のファイルの変更検知
   changes:
+    needs: set-config-job
     runs-on: ubuntu-latest
     outputs:
       src: ${{ steps.filter.outputs.src }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          src:
-            - 'src/**'
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
   build:
     needs: changes
-    if: ${{ (needs.changes.outputs.src == 'true') && (github.ref != 'refs/heads/main') }}
+    if: needs.changes.outputs.src == 'true' && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -71,10 +94,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: "{{defaultContext}}:src"
+          context: "{{ defaultContext }}:src"
           file: Dockerfile.prd
           push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api:${{ github.sha }}
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ jobs.set-config-job.outputs.repository_name }}/youtube-data-api:${{ github.sha }}
           platforms: linux/amd64
 
   terraform:
@@ -83,7 +106,7 @@ jobs:
     if: always()
     defaults:
       run:
-        working-directory: ./terraform
+        working-directory: ./terraform/resource_stack
     permissions:
       id-token: write
       contents: read
@@ -109,11 +132,9 @@ jobs:
       - name: Get Latest Tag
         id: get-latest-tag
         run: |
-          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/youtube-data-api)
+          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ jobs.set-config-job.outputs.repository_name }}/youtube-data-api)
           echo "Latest image tag is $LATEST_TAG"
           echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
-
-        shell: bash
 
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v3
@@ -126,6 +147,9 @@ jobs:
       - name: Terraform Init
         id: init
         run: terraform init
+
+      - name: Terraform Workspace Select
+        run: terraform workspace select ${{ jobs.set-config-job.outputs.branch_string }} || terraform workspace new ${{ jobs.set-config-job.outputs.branch_string }}
 
       - name: Terraform Validate
         id: validate
