@@ -145,7 +145,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Workspace Select
-        run: terraform workspace select ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }} || terraform workspace new ${{ needs.set-config-job.outputs.branch_string }}
+        run: terraform workspace select ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }} || terraform workspace new ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
 
       - name: Terraform Validate
         id: validate
