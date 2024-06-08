@@ -94,7 +94,6 @@ jobs:
           file: ./src/Dockerfile.prd
           push: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name }}/${{ needs.setup.outputs.env_string }}-api-image:${{ github.sha }}
-          platforms: linux/amd64
 
   terraform:
     needs: [setup, build]
