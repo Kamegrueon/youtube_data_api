@@ -149,7 +149,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Workspace Select
-        run: terraform workspace select ${{ jobs.set-config-job.outputs.branch_string }} || terraform workspace new ${{ jobs.set-config-job.outputs.branch_string }}
+        run: terraform workspace select ${{ needs.set-config-job.outputs.branch_string }} || terraform workspace new ${{ needs.set-config-job.outputs.branch_string }}
 
       - name: Terraform Validate
         id: validate
