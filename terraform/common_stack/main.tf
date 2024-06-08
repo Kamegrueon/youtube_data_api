@@ -16,7 +16,7 @@ module "artifact_registry" {
   for_each        = { for config in var.artifact_registry_configs : config.name => config }
   gcp_project_id  = var.gcp_project_id
   gcp_region      = var.gcp_region
-  repository_name = each.value.name
+  repository_name = "${each.value.name}-${var.app_name}"
   keep_count      = each.value.keep_count
   depends_on      = [module.enable_google_apis]
 }
