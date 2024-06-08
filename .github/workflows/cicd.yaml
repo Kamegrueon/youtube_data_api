@@ -21,30 +21,13 @@ env:
 
 # ジョブ / ステップ / アクションの定義
 jobs:
-  set-config-job:
-    runs-on: ubuntu-latest
-    outputs:
-      branch_string: ${{ steps.set-config.outputs.BRANCH_STRING }}
-      repository_name: ${{ steps.set-config.outputs.REPOSITORY_NAME }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set branch string
-        id: set-config
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event.pull_request.base_ref }}" == "main" ]]; then
-            echo "BRANCH_STRING=prd" >> "$GITHUB_OUTPUT"
-            echo "REPOSITORY_NAME=prd-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.ref }}" == "refs/heads/dev" || "${{ github.event.pull_request.base_ref }}" == "dev" ]]; then
-            echo "BRANCH_STRING=dev" >> "$GITHUB_OUTPUT"
-            echo "REPOSITORY_NAME=dev-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
-          fi
   # src配下のファイルの変更検知
-  changes:
-    needs: set-config-job
+  setup:
     runs-on: ubuntu-latest
     outputs:
       src: ${{ steps.filter.outputs.src }}
+      env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
+      repository_name: ${{ steps.set-environment.outputs.REPOSITORY_NAME }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -53,10 +36,23 @@ jobs:
           filters: |
             src:
               - 'src/**'
+      - name: Set environment string
+        id: set-environment
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event.pull_request.base_ref }}" == "main" ]]; then
+            echo "EMV_STRING=prd" >> "$GITHUB_OUTPUT"
+            echo "REPOSITORY_NAME=prd-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == "refs/heads/dev" || "${{ github.event.pull_request.base_ref }}" == "dev" ]]; then
+            echo "ENV_STRING=dev" >> "$GITHUB_OUTPUT"
+            echo "REPOSITORY_NAME=dev-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
+          fi
   build:
-    needs: changes
-    if: needs.changes.outputs.src == 'true' && github.event_name == 'pull_request'
+    needs: setup
+    if: needs.setup.outputs.src == 'true' && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    outputs:
+      env_string: ${{ needs.setup.outputs.env_string }}
+      repository_name: ${{ needs.setup.outputs.repository_name }}
     defaults:
       run:
         working-directory: .
@@ -97,7 +93,7 @@ jobs:
           context: "{{ defaultContext }}:src"
           file: Dockerfile.prd
           push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.set-config-job.outputs.repository_name }}/youtube-data-api:${{ github.sha }}
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name }}/youtube-data-api:${{ github.sha }}
           platforms: linux/amd64
 
   terraform:
@@ -132,7 +128,7 @@ jobs:
       - name: Get Latest Tag
         id: get-latest-tag
         run: |
-          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.set-config-job.outputs.repository_name }}/youtube-data-api)
+          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}/youtube-data-api)
           echo "Latest image tag is $LATEST_TAG"
           echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
@@ -149,7 +145,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Workspace Select
-        run: terraform workspace select ${{ needs.set-config-job.outputs.branch_string }} || terraform workspace new ${{ needs.set-config-job.outputs.branch_string }}
+        run: terraform workspace select ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }} || terraform workspace new ${{ needs.set-config-job.outputs.branch_string }}
 
       - name: Terraform Validate
         id: validate
