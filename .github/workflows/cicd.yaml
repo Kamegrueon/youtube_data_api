@@ -111,7 +111,7 @@ jobs:
   terraform:
     needs: [validate, setup, build]
     runs-on: ubuntu-latest
-    if: needs.validate.result == 'success' && (needs.build.result == 'success' || needs.setup.outputs.src == [])
+    if: needs.validate.result == 'success' && (needs.build.result == 'success' || needs.setup.outputs.src == 'false')
     environment: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
     defaults:
       run:
