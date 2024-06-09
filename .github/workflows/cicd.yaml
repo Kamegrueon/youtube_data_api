@@ -1,12 +1,7 @@
 name: cicd
 
-# main ブランチへのPull Request と Merge をトリガーに指定 
+# main ブランチへのPull Request と Merge をトリガーに指定
 on:
-  workflow_run:
-    workflows:
-      - "Restrict PRs to Main"
-    types:
-      - completed
   push:
     branches:
       - main
@@ -26,10 +21,20 @@ env:
 
 # ジョブ / ステップ / アクションの定義
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - run: "Print ${{ github.event.pull_request.base.ref }}, ${{ github.event.pull_request.head.ref }}"
+      - name: Check base branch
+        if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref != 'stg'
+        run: |
+          echo "Pull requests to main are only allowed from the stg branch."
+          exit 1
   # src配下のファイルの変更検知
   setup:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    needs: validate
+    if: success()
     outputs:
       src: ${{ steps.filter.outputs.src }}
       env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
@@ -55,8 +60,8 @@ jobs:
             echo "Set ENV_STRING=stg, REPOSITORY_NAME=stg-$BASE_REPOSITORY_NAME"
           fi
   build:
-    needs: setup
-    if: github.event.workflow_run.conclusion == 'success' && (needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg')
+    needs: [validate, setup]
+    if: success() && (needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg')
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
@@ -104,9 +109,9 @@ jobs:
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name }}/${{ needs.setup.outputs.env_string }}-api-image:${{ github.sha }}
 
   terraform:
-    needs: [setup, build]
+    needs: [validate, setup, build]
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' && always()
+    if: success() && always() # validateが失敗した場合は実行しない && buildがスキップされていても実行する
     defaults:
       run:
         working-directory: ./terraform/resource_stack
