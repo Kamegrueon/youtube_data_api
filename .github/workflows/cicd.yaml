@@ -5,11 +5,11 @@ on:
   push:
     branches:
       - main
-      - dev
+      - stg
   pull_request:
     branches:
       - main
-      - dev
+      - stg
 
 env:
   # GCPのPROJECT_ID
@@ -42,13 +42,13 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.base_ref }}" == "main" ]]; then
             echo "ENV_STRING=prd" >> "$GITHUB_OUTPUT"
             echo "REPOSITORY_NAME=prd-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.ref }}" == "refs/heads/dev" || "${{ github.base_ref }}" == "dev" ]]; then
-            echo "ENV_STRING=dev" >> "$GITHUB_OUTPUT"
-            echo "REPOSITORY_NAME=dev-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == "refs/heads/stg" || "${{ github.base_ref }}" == "stg" ]]; then
+            echo "ENV_STRING=stg" >> "$GITHUB_OUTPUT"
+            echo "REPOSITORY_NAME=stg-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
           fi
   build:
     needs: setup
-    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/dev'
+    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg'
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
@@ -187,19 +187,19 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
-  
+
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-      # mainとdevにpushした場合は appｌｙ が実行される
+      # mainとstgにpushした場合は appｌｙ が実行される
       - name: Terraform Apply
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push'
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stg') && github.event_name == 'push'
         run: terraform apply -auto-approve -var=docker_tag=${{ steps.get-latest-tag.outputs.tag }}
 
-      # main ブランチに push した場合にだけ dev環境のdestroyが実行される
-      - name: Terraform Destroy Dev
+      # main ブランチに push した場合にだけ stg環境のdestroyが実行される
+      - name: Terraform Destroy Stg
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          terraform workspace select dev || terraform workspace new dev
+          terraform workspace select stg || terraform workspace new stg
           terraform destroy -auto-approve -var=docker_tag=''

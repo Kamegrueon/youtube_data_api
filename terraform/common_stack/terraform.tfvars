@@ -34,7 +34,7 @@ artifact_registry_configs = [
     keep_count = 3
   },
   {
-    name       = "dev"
+    name       = "stg"
     keep_count = 0
   }
 ]
