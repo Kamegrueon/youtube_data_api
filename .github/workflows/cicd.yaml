@@ -24,7 +24,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - run: "Print ${{ github.event.pull_request.base.ref }}, ${{ github.event.pull_request.head.ref }}"
+      - run: echo "Print ${{ github.event.pull_request.base.ref }}, ${{ github.event.pull_request.head.ref }}"
       - name: Check base branch
         if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref != 'stg'
         run: |
