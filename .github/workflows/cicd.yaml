@@ -13,11 +13,14 @@ on:
 
 env:
   # GCPのPROJECT_ID
-  PROJECT_ID: youtube-data-api-385206
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   # Region
-  REGION: asia-northeast1
+  REGION: ${{ secrets.GCP_REGION }}
   # Artifact RegistryのRepository名（事前に作成しておく）
-  BASE_REPOSITORY_NAME: youtube-data-api-repository
+  BASE_REPOSITORY_NAME: ${{ secrets.BASE_REPOSITORY_NAME }}
+
+  SERVICE_ACCOUNT: ${{ secrets.TERRAFORM_SERVICE_ACCOUNT }}
+  WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
 # ジョブ / ステップ / アクションの定義
 jobs:
@@ -83,8 +86,8 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/youtube-data-api-pool/providers/youtube-data-api-provider'
-          service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
 
       - id: 'setup'
         name: 'Setup Cloud SDK'
@@ -127,8 +130,8 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          workload_identity_provider: 'projects/1051886801059/locations/global/workloadIdentityPools/youtube-data-api-pool/providers/youtube-data-api-provider'
-          service_account: 'terraform@youtube-data-api-385206.iam.gserviceaccount.com'
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
 
       - id: 'setup'
         name: 'Setup Cloud SDK'
