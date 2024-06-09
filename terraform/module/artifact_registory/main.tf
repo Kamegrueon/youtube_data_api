@@ -14,6 +14,7 @@ resource "google_artifact_registry_repository" "repository" {
     }
   }
   dynamic "cleanup_policies" {
+    # keep_countが0以下の場合は下記のcleanup_polycyを適用しない(dev環境はimageを保持しない)
     for_each = var.keep_count > 0 ? [var.keep_count] : []
     content {
       id     = "keep-minimum-versions"
