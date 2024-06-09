@@ -61,7 +61,7 @@ jobs:
           fi
   build:
     needs: [validate, setup]
-    if: success() && (needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg')
+    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg'
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
@@ -111,7 +111,7 @@ jobs:
   terraform:
     needs: [validate, setup, build]
     runs-on: ubuntu-latest
-    if: success() && always() # validateが失敗した場合は実行しない && buildがスキップされていても実行する
+    if: always() # buildがスキップされていても実行する
     defaults:
       run:
         working-directory: ./terraform/resource_stack
