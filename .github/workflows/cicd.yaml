@@ -112,6 +112,7 @@ jobs:
     needs: [validate, setup, build]
     runs-on: ubuntu-latest
     if: ${{ needs.validate.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    environment: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
     defaults:
       run:
         working-directory: ./terraform/resource_stack
