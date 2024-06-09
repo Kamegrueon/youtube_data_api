@@ -111,7 +111,7 @@ jobs:
   terraform:
     needs: [validate, setup, build]
     runs-on: ubuntu-latest
-    if: needs.validate.result == 'success' && (needs.build.result == 'success' || needs.setup.outputs.src == 'false')
+    if: needs.validate.result == 'success' && (needs.build.result == 'success' || needs.setup.outputs.src != 'true')
     environment: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
     defaults:
       run:
@@ -123,6 +123,7 @@ jobs:
 
     # Workload Identity 連携
     steps:
+      - run: echo ${{needs.setup.outputs.src}}
       - uses: actions/checkout@v4
 
       - id: 'auth'
