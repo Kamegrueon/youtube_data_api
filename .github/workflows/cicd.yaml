@@ -111,7 +111,7 @@ jobs:
   terraform:
     needs: [validate, setup, build]
     runs-on: ubuntu-latest
-    if: always() # buildがスキップされていても実行する
+    if: ${{ needs.validate.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     defaults:
       run:
         working-directory: ./terraform/resource_stack
