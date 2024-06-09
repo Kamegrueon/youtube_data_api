@@ -28,6 +28,7 @@ env:
 jobs:
   # src配下のファイルの変更検知
   setup:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       src: ${{ steps.filter.outputs.src }}
@@ -55,7 +56,7 @@ jobs:
           fi
   build:
     needs: setup
-    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg'
+    if: github.event.workflow_run.conclusion == 'success' && (needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg')
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
@@ -105,7 +106,7 @@ jobs:
   terraform:
     needs: [setup, build]
     runs-on: ubuntu-latest
-    if: always()
+    if: github.event.workflow_run.conclusion == 'success' && always()
     defaults:
       run:
         working-directory: ./terraform/resource_stack
