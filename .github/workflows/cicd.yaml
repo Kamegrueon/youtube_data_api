@@ -2,6 +2,11 @@ name: cicd
 
 # main ブランチへのPull Request と Merge をトリガーに指定 
 on:
+  workflow_run:
+    workflows:
+      - "Restrict PRs to Main"
+    types:
+      - completed
   push:
     branches:
       - main
