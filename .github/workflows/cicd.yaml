@@ -110,7 +110,7 @@ jobs:
   test:
     needs: [validate, setup, build]
     runs-on: ubuntu-latest
-    if: needs.validate.result == 'success' && (needs.build.result == '' || needs.setup.outputs.src != 'true')
+    if: ${{ ! failure() }} && needs.validate.result == 'success'
     steps:
       - run: echo ${{ needs.validate.result }}
       - run: echo ${{ needs.build.result }}
