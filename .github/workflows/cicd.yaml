@@ -107,6 +107,13 @@ jobs:
           file: ./src/Dockerfile.prd
           push: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name }}/${{ needs.setup.outputs.env_string }}-api-image:${{ github.sha }}
+  test:
+    needs: [validate, setup, build]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{ needs.validate.result }}
+      - run: echo ${{ needs.build.result }}
+      - run: echo ${{ needs.setup.outputs.src }}
 
   terraform:
     needs: [validate, setup, build]
