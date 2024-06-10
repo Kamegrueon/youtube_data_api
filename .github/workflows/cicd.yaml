@@ -152,7 +152,8 @@ jobs:
       #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       #     service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      - run: echo "${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}"
+      - run: echo "${{ needs.setup.outputs.repository_name }}"
+      - run: echo "${{ needs.build.outputs.repository_name }}"
       - run: echo "${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}"
 
       - name: Get Latest Tag
