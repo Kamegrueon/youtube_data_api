@@ -143,6 +143,8 @@ jobs:
         with:
           version: '>= 363.0.0'
 
+      - run: gcloud auth application-default login
+
       - name: Get Latest Tag
         id: get-latest-tag
         working-directory: .github/scripts/
