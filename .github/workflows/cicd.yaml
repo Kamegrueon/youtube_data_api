@@ -89,7 +89,7 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      - id: 'Setup to Google Cloud'
+      - id: 'setup-to-google-cloud'
         name: 'Setup Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
