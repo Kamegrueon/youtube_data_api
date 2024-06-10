@@ -79,7 +79,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-        uses: .github/workflows/authenticate.yaml
+        uses: ./.github/workflows/authenticate.yaml
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
@@ -117,7 +117,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-        uses: .github/workflows/authenticate.yaml
+        uses: ./.github/workflows/authenticate.yaml
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
