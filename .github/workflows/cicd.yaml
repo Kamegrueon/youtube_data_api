@@ -146,7 +146,7 @@ jobs:
       - name: Get Latest Tag
         id: get-latest-tag
         working-directory: .github/scripts/
-        run: ./set_env.sh
+        run: ./get_latest_tag.sh
         env:
           REGION: ${{ env.REGION }}
           PROJECT_ID: ${{ env.PROJECT_ID }}
