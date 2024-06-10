@@ -52,16 +52,12 @@ jobs:
               - 'src/**'
       - name: Set environment string
         id: set-environment
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.base_ref }}" == "main" ]]; then
-            echo "ENV_STRING=prd" >> "$GITHUB_OUTPUT"
-            echo "REPOSITORY_NAME=prd-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
-            echo "Set ENV_STRING=prd, REPOSITORY_NAME=prd-$BASE_REPOSITORY_NAME"
-          elif [[ "${{ github.ref }}" == "refs/heads/stg" || "${{ github.base_ref }}" == "stg" ]]; then
-            echo "ENV_STRING=stg" >> "$GITHUB_OUTPUT"
-            echo "REPOSITORY_NAME=stg-$BASE_REPOSITORY_NAME" >> "$GITHUB_OUTPUT"
-            echo "Set ENV_STRING=stg, REPOSITORY_NAME=stg-$BASE_REPOSITORY_NAME"
-          fi
+        run: .github/scripts/set_env.sh
+        env:
+          BASE_REPOSITORY_NAME: ${{ secrets.BASE_REPOSITORY_NAME }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_OUTPUT: $GITHUB_OUTPUT
   build:
     needs: [validate, setup]
     if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg'
@@ -82,18 +78,11 @@ jobs:
       # https://cloud.google.com/iam/docs/using-workload-identity-federation#generate-automatic
       - uses: actions/checkout@v4
 
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v2'
+      - name: Authenticate to Google Cloud
+        uses: .github/workflows/authenticate.yaml
         with:
-          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ env.SERVICE_ACCOUNT }}
-
-      - id: 'setup'
-        name: 'Setup Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-        with:
-          version: '>= 363.0.0'
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: 'Authorize Docker push'
         # Artifact Registryにpushできるように認証をおこなう
@@ -113,7 +102,7 @@ jobs:
   terraform:
     needs: [validate, setup, build]
     runs-on: ubuntu-latest
-    if: ${{ ! failure() }} && needs.validate.result == 'success'
+    if: ${{ !failure() }} && needs.validate.result == 'success'
     environment: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
     defaults:
       run:
@@ -126,25 +115,22 @@ jobs:
     # Workload Identity 連携
     steps:
       - uses: actions/checkout@v4
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ env.SERVICE_ACCOUNT }}
 
-      - id: 'setup'
-        name: 'Setup Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
+      - name: Authenticate to Google Cloud
+        uses: .github/workflows/authenticate.yaml
         with:
-          version: '>= 363.0.0'
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: Get Latest Tag
         id: get-latest-tag
-        run: |
-          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}/${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}-api-image)
-          echo "Latest image tag is $LATEST_TAG"
-          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+        run: .github/scripts/get_latest_tag.sh
+        env:
+          REGION: ${{ env.REGION }}
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          REPOSITORY_NAME: ${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}
+          ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
+          GITHUB_OUTPUT: $GITHUB_OUTPUT
 
       # https://github.com/hashicorp/setup-terraform 
       - uses: hashicorp/setup-terraform@v3
@@ -173,35 +159,35 @@ jobs:
       - name: print
         run: echo ${{ steps.get-latest-tag.outputs.tag }}
 
+      - name: Set Terraform Plan Comment
+        id: terraform_plan_comment
+        run: .github/scripts/set_terraform_plan_comment.sh
+        env:
+          FMT_OUTCOME: ${{ steps.fmt.outcome }}
+          INIT_OUTCOME: ${{ steps.init.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          VALIDATE_OUTPUT: ${{ steps.validate.outputs.stdout }}
+          PLAN_OUTCOME: ${{ steps.plan.outcome }}
+          PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_WORKING_DIR: ${{ env.tf_actions_working_dir }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_OUTPUT: $GITHUB_OUTPUT
+
       - name: Comment Terraform Plan
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            <details><summary>Validation Output</summary>
-            \`\`\`\n
-            ${{ steps.validate.outputs.stdout }}
-            \`\`\`
-            </details>
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-            <details><summary>Show Plan</summary>
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-            </details>
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-            github.rest.issues.createComment({
+            const params = {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: output
-            })
+              body: '${{ steps.terraform_plan_comment.outputs.message }}'
+            }
+            await github.rest.issues.createComment(params)
 
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
