@@ -47,7 +47,7 @@ jobs:
 
       - name: Make the script files executable
         working-directory: .github/scripts/
-        run: chmod +x set_env.sh
+        run: chmod +x *.sh
 
       - uses: dorny/paths-filter@v3
         id: filter
@@ -129,7 +129,7 @@ jobs:
 
       - name: Make the script files executable
         working-directory: .github/scripts/
-        run: chmod +x get_latest_tag.sh terraform_plan_comment.sh
+        run: chmod +x *.sh
 
       - name: Authenticate to Google Cloud
         uses: ./.github/actions/authenticate
@@ -146,7 +146,7 @@ jobs:
       - name: Get Latest Tag
         id: get-latest-tag
         working-directory: .github/scripts/
-        run: get_latest_tag.sh
+        run: ./set_env.sh
         env:
           REGION: ${{ env.REGION }}
           PROJECT_ID: ${{ env.PROJECT_ID }}
@@ -184,7 +184,7 @@ jobs:
       - name: Set Terraform Plan Comment
         id: terraform_plan_comment
         working-directory: .github/scripts/
-        run: set_terraform_plan_comment.sh
+        run: ./terraform_plan_comment.sh
         env:
           FMT_OUTCOME: ${{ steps.fmt.outcome }}
           INIT_OUTCOME: ${{ steps.init.outcome }}
