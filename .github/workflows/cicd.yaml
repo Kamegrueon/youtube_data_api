@@ -122,7 +122,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Make the script files executable
-        working-directory: .github/scripts/
+        working-directory: ../../.github/scripts/
         run: chmod +x get_latest_tag.sh set_terraform_plan_comment.sh
 
       - name: Authenticate to Google Cloud
@@ -133,7 +133,8 @@ jobs:
 
       - name: Get Latest Tag
         id: get-latest-tag
-        run: ./.github/scripts/get_latest_tag.sh
+        working-directory: ../../.github/scripts/
+        run: get_latest_tag.sh
         env:
           REGION: ${{ env.REGION }}
           PROJECT_ID: ${{ env.PROJECT_ID }}
@@ -170,7 +171,8 @@ jobs:
 
       - name: Set Terraform Plan Comment
         id: terraform_plan_comment
-        run: ./.github/scripts/set_terraform_plan_comment.sh
+        working-directory: ../../.github/scripts/
+        run: set_terraform_plan_comment.sh
         env:
           FMT_OUTCOME: ${{ steps.fmt.outcome }}
           INIT_OUTCOME: ${{ steps.init.outcome }}
