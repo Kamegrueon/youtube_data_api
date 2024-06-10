@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-        uses: ./.github/actions/authenticate.yaml
+        uses: ./.github/actions/authenticate
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
@@ -132,7 +132,7 @@ jobs:
         run: chmod +x get_latest_tag.sh terraform_plan_comment.sh
 
       - name: Authenticate to Google Cloud
-        uses: ./.github/actions/authenticate.yaml
+        uses: ./.github/actions/authenticate
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
