@@ -19,8 +19,3 @@ jobs:
         with:
           workload_identity_provider: ${{ inputs.workload_identity_provider }}
           service_account: ${{ inputs.service_account }}
-      - id: 'Setup to Google Cloud'
-        name: 'Setup Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-        with:
-          version: '>= 363.0.0'

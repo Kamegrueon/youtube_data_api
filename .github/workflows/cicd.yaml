@@ -89,6 +89,12 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
+      - id: 'Setup to Google Cloud'
+        name: 'Setup Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
       - name: 'Authorize Docker push'
         # Artifact Registryにpushできるように認証をおこなう
         # Container Registryのときには不要だったArtifact RegistryではRegionの指定が必須
@@ -130,6 +136,12 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - id: 'Setup to Google Cloud'
+        name: 'Setup Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
 
       - name: Get Latest Tag
         id: get-latest-tag
