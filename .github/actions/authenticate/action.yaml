@@ -17,3 +17,4 @@ runs:
       with:
         workload_identity_provider: ${{ inputs.workload_identity_provider }}
         service_account: ${{ inputs.service_account }}
+        project_id: ${{ env.PROJECT_ID }}
