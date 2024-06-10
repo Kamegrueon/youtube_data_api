@@ -131,19 +131,25 @@ jobs:
         working-directory: .github/scripts/
         run: chmod +x *.sh
 
-      - name: Authenticate to Google Cloud
-        uses: ./.github/actions/authenticate
+      - id: 'auth'
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      # - name: Authenticate to Google Cloud
+      #   uses: ./.github/actions/authenticate
+      #   with:
+      #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      #     service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
 
       - id: 'setup-to-google-cloud'
         name: 'Setup Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
           version: '>= 363.0.0'
-
-      - run: gcloud auth application-default login
 
       - name: Get Latest Tag
         id: get-latest-tag
