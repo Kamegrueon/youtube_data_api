@@ -132,24 +132,28 @@ jobs:
         working-directory: .github/scripts/
         run: chmod +x *.sh
 
-      - id: 'setup-to-google-cloud'
-        name: 'Setup Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-        with:
-          version: '>= 363.0.0'
-
       - id: 'auth'
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
+          project-id: ${{ env.PROJECT_ID }}
+
+      - id: 'setup-to-google-cloud'
+        name: 'Setup Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
 
       # - name: Authenticate to Google Cloud
       #   uses: ./.github/actions/authenticate
       #   with:
       #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       #     service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - run: echo "${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}"
+      - run: echo "${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}"
 
       - name: Get Latest Tag
         id: get-latest-tag
