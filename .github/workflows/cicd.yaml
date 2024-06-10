@@ -123,7 +123,7 @@ jobs:
 
       - name: Make the script files executable
         working-directory: .github/scripts/
-        run: chmod +x get_latest_tag.sh set_terraform_plan_comment.sh
+        run: chmod +x get_latest_tag.sh terraform_plan_comment.sh
 
       - name: Authenticate to Google Cloud
         uses: ./.github/workflows/authenticate.yaml
