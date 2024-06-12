@@ -41,7 +41,6 @@ jobs:
     outputs:
       src: ${{ steps.filter.outputs.src }}
       env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
-      repository_name: ${{ steps.set-environment.outputs.REPOSITORY_NAME }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,18 +58,15 @@ jobs:
         id: set-environment
         run: ./.github/scripts/set_env.sh
         env:
-          BASE_REPOSITORY_NAME: ${{ secrets.BASE_REPOSITORY_NAME }}
           GITHUB_REF: ${{ github.ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
           GITHUB_OUTPUT: $GITHUB_OUTPUT
-      - run: echo "${{ steps.set-environment.outputs.ENV_STRING }} ${{ steps.set-environment.outputs.REPOSITORY_NAME }}"
   build:
     needs: [is-allow-pull-request, setup]
     if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg'
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
-      repository_name: ${{ needs.setup.outputs.repository_name }}
     defaults:
       run:
         working-directory: .
@@ -110,7 +106,7 @@ jobs:
           context: ./src
           file: ./src/Dockerfile.prd
           push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name }}/${{ needs.setup.outputs.env_string }}-api-image:${{ github.sha }}
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}/${{ needs.setup.outputs.env_string }}-api-image:${{ github.sha }}
   terraform:
     needs: [is-allow-pull-request, setup, build]
     runs-on: ubuntu-latest
@@ -152,8 +148,7 @@ jobs:
       #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       #     service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      - run: echo "${{ needs.setup.outputs.repository_name }}"
-      - run: echo "${{ needs.build.outputs.repository_name }}"
+      - run: echo "${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}"
       - run: echo "${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}"
 
       - name: Get Latest Tag
@@ -163,7 +158,7 @@ jobs:
         env:
           REGION: ${{ env.REGION }}
           PROJECT_ID: ${{ env.PROJECT_ID }}
-          REPOSITORY_NAME: ${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}
+          REPOSITORY_NAME: ${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}
           ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
           GITHUB_OUTPUT: $GITHUB_OUTPUT
 
