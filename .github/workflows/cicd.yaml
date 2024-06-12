@@ -150,6 +150,7 @@ jobs:
 
       - run: echo "${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}"
       - run: echo "${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}"
+      - run: echo "${{ steps.auth.outputs.credentials_file_path }}"
 
       - name: Get Latest Tag
         id: get-latest-tag
@@ -160,6 +161,7 @@ jobs:
           PROJECT_ID: ${{ env.PROJECT_ID }}
           REPOSITORY_NAME: ${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}
           ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
           GITHUB_OUTPUT: $GITHUB_OUTPUT
 
       # https://github.com/hashicorp/setup-terraform
