@@ -1,6 +1,6 @@
 #!/bin/bash
 
-lf=$'\n'
+lf="\n"
 message="#### Terraform Format and Style 🖌${FMT_OUTCOME}"
 message+="${lf}#### Terraform Initialization ⚙️${INIT_OUTCOME}"
 message+="${lf}#### Terraform Validation 🤖${VALIDATE_OUTCOME}"
