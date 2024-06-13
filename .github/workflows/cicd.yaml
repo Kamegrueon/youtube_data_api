@@ -134,7 +134,6 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
-          project_id: ${{ env.PROJECT_ID }}
 
       - id: 'setup-to-google-cloud'
         name: 'Setup Cloud SDK'
@@ -152,17 +151,22 @@ jobs:
       - run: echo "${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}"
       - run: echo "${{ steps.auth.outputs.credentials_file_path }}"
 
+      # - name: Get Latest Tag
+      #   id: get-latest-tag
+      #   working-directory: .github/scripts/
+      #   run: ./get_latest_tag.sh
+      #   env:
+      #     REGION: ${{ env.REGION }}
+      #     PROJECT_ID: ${{ env.PROJECT_ID }}
+      #     REPOSITORY_NAME: ${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}
+      #     ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
+      #     GITHUB_OUTPUT: $GITHUB_OUTPUT
       - name: Get Latest Tag
         id: get-latest-tag
-        working-directory: .github/scripts/
-        run: ./get_latest_tag.sh
-        env:
-          REGION: ${{ env.REGION }}
-          PROJECT_ID: ${{ env.PROJECT_ID }}
-          REPOSITORY_NAME: ${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}
-          ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
-          GITHUB_OUTPUT: $GITHUB_OUTPUT
+        run: |
+          LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.repository_name || needs.build.outputs.repository_name }}/${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}-api-image)
+          echo "Latest image tag is $LATEST_TAG"
+          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v3
