@@ -130,10 +130,6 @@ jobs:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
-      - run: echo "${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}"
-      - run: echo "${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}"
-      - run: echo "${{ steps.auth.outputs.credentials_file_path }}"
-
       - name: Get Latest Tag
         id: get-latest-tag
         working-directory: .github/scripts/
@@ -144,6 +140,9 @@ jobs:
           REPOSITORY_NAME: ${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}
           ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
           GITHUB_OUTPUT: $GITHUB_OUTPUT
+
+      - name: Print Latest Tag
+        run: echo ${{ steps.get-latest-tag.outputs.tag }}
 
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v3
@@ -168,9 +167,6 @@ jobs:
         id: plan
         run: terraform plan -no-color -var=docker_tag=${{ steps.get-latest-tag.outputs.tag }}
         continue-on-error: true
-
-      - name: print
-        run: echo ${{ steps.get-latest-tag.outputs.tag }}
 
       - name: Set Terraform Plan Comment
         id: terraform_plan_comment
