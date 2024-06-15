@@ -6,34 +6,34 @@ inputs:
       description: terraform fmt result
       required: true
     INIT_OUTCOME:
-      description: terraform fmt result
+      description: terraform init result
       required: true
     VALIDATE_OUTCOME:
-      description: terraform fmt result
+      description: terraform validate result
       required: true
     VALIDATE_OUTPUT:
-      description: terraform fmt result
+      description: terraform validate output content
       required: true
     PLAN_OUTCOME:
       description: terraform fmt result
       required: true
     PLAN_OUTPUT:
-      description: terraform fmt result
+      description: terraform plan output content
       required: true
     GITHUB_ACTOR:
-      description: terraform fmt result
+      description: github actor
       required: true
     GITHUB_EVENT_NAME:
-      description: terraform fmt result
+      description: github event name
       required: true
-    GITHUB_WORKING_DIR:
-      description: terraform fmt result
+    TF_WORKING_DIR:
+      description: terraform working directory
       required: true
     GITHUB_WORKFLOW:
-      description: terraform fmt result
+      description: github workflow name
       required: true
     GITHUB_TOKEN:
-      description: terraform fmt result
+      description: github token
       required: true
 
 runs:
@@ -53,7 +53,7 @@ runs:
           PLAN_OUTPUT: ${{ inputs.PLAN_OUTPUT }}
           GITHUB_ACTOR: ${{ inputs.GITHUB_ACTOR }}
           GITHUB_EVENT_NAME: ${{ inputs.GITHUB_EVENT_NAME }}
-          GITHUB_WORKING_DIR: ${{ inputs.GITHUB_WORKING_DIR }}
+          TF_WORKING_DIR: ${{ inputs.TF_WORKING_DIR }}
           GITHUB_WORKFLOW: ${{ inputs.GITHUB_WORKFLOW }}
 
       - name: Comment Terraform Plan
