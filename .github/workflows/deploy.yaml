@@ -87,9 +87,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: echo ${{ needs.setup.outputs.common }}
-      - run: echo ${{ needs.is-allow-pull-request }}
-
       - name: Make the script files executable
         working-directory: .github/scripts/
         run: chmod +x *.sh
