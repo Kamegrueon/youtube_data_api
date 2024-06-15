@@ -1,15 +1,13 @@
-name: deploy
+name: prd-deploy
 
 # main ブランチへのPull Request と Merge をトリガーに指定
 on:
   push:
     branches:
       - main
-      - stg
   pull_request:
     branches:
       - main
-      - stg
 
 env:
   # GCPのPROJECT_ID
@@ -29,6 +27,7 @@ env:
 jobs:
   is-allow-pull-request:
     runs-on: ubuntu-latest
+    environment: prd
     steps:
       - run: echo "Print ${{ github.event.pull_request.base.ref }}, ${{ github.event.pull_request.head.ref }}"
       - name: Check base branch
@@ -39,12 +38,13 @@ jobs:
   # src配下のファイルの変更検知
   setup:
     runs-on: ubuntu-latest
+    environment: ${{ vars.ENVIRONMENT }}
     needs: is-allow-pull-request
     if: ${{ !failure() }}
     outputs:
       common: ${{ steps.common-filter.outputs.common }}
       src: ${{ steps.src-filter.outputs.src }}
-      env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
+    #   env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
     steps:
       - uses: actions/checkout@v4
 
@@ -64,17 +64,18 @@ jobs:
           filters: |
             src:
               - 'src/**'
-      - name: Set environment string
-        id: set-environment
-        run: ./.github/scripts/set-env.sh
-        env:
-          GITHUB_REF: ${{ github.ref }}
-          GITHUB_BASE_REF: ${{ github.base_ref }}
-          GITHUB_OUTPUT: $GITHUB_OUTPUT
+    #   - name: Set environment string
+    #     id: set-environment
+    #     run: ./.github/scripts/set-env.sh
+    #     env:
+    #       GITHUB_REF: ${{ github.ref }}
+    #       GITHUB_BASE_REF: ${{ github.base_ref }}
+    #       GITHUB_OUTPUT: $GITHUB_OUTPUT
   common-terraform:
     needs: [is-allow-pull-request, setup]
     if: needs.setup.outputs.common == 'true'
     runs-on: ubuntu-latest
+    environment: ${{ vars.ENVIRONMENT }}
     defaults:
       run:
         working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
@@ -83,8 +84,10 @@ jobs:
       contents: read
       pull-requests: write
 
-    # Workload Identity 連携
     steps:
+      - run: echo "Common Terraform Job"
+        if: always()
+
       - uses: actions/checkout@v4
 
       - name: Make the script files executable
@@ -144,7 +147,7 @@ jobs:
 
   build:
     needs: [is-allow-pull-request, setup, common-terraform]
-    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg'
+    if: needs.setup.outputs.src == 'true'
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
