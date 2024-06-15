@@ -162,12 +162,6 @@ jobs:
           REPOSITORY_NAME: ${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}
           ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
           GITHUB_OUTPUT: $GITHUB_OUTPUT
-      # - name: Get Latest Tag
-      #   id: get-latest-tag
-      #   run: |
-      #     LATEST_TAG=$(gcloud artifacts docker images list --sort-by=~CREATE_TIME --include-tags --format='value(TAGS)' --filter="tags:*" --limit=1 ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}/${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}-api-image)
-      #     echo "Latest image tag is $LATEST_TAG"
-      #     echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v3
