@@ -1,6 +1,6 @@
 #!/bin/bash
 
-lf="%0A"  # GitHub Actionsの改行エスケープシーケンス
+lf="\n"  # GitHub Actionsの改行エスケープシーケンス
 
 # メッセージの構築
 message="#### Terraform Format and Style 🖌${FMT_OUTCOME}${lf}"
@@ -12,4 +12,4 @@ message+="<details><summary>Show Plan</summary>${lf}\`\`\`terraform${lf}${PLAN_O
 message+="*Pusher: @${GITHUB_ACTOR}, Action: ${GITHUB_EVENT_NAME}, Working Directory: ${GITHUB_WORKING_DIR}, Workflow: ${GITHUB_WORKFLOW}*"
 
 # メッセージの出力
-echo "message=$message" >> $GITHUB_OUTPUT
+echo "message=$message" > terraform_comment.txt
