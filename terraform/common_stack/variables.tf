@@ -1,7 +1,15 @@
 ##########################################
 # Common
 ##########################################
-variable "terraform_sa_email" {
+variable "run_context" {
+  type = string
+}
+
+variable "terraform_sa_admin_email" {
+  type = string
+}
+
+variable "terraform_sa_viewer_email" {
   type = string
 }
 
