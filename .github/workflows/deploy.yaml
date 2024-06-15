@@ -118,11 +118,9 @@ jobs:
         run: terraform plan -no-color -var "run_context=remote"
         continue-on-error: true
 
-      - name: Set Terraform Plan Comment
-        id: terraform_plan_comment
-        working-directory: .github/scripts/
-        run: ./terraform_plan_comment.sh
-        env:
+      - name: Set Resource Stack Terraform Plan To PR Comment
+        uses: ./.github/actions/set_plan_comment
+        with:
           FMT_OUTCOME: ${{ steps.fmt.outcome }}
           INIT_OUTCOME: ${{ steps.init.outcome }}
           VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
@@ -131,24 +129,9 @@ jobs:
           PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_WORKING_DIR: ${{ env.TF_COMMON_WORKING_DIR }}
+          TF_WORKING_DIR: ${{ env.TF_COMMON_WORKING_DIR }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
-
-      - name: Comment Terraform Plan
-        uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const message = fs.readFileSync('.github/scripts/terraform_comment.txt', 'utf-8').toString();
-            const params = {
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            }
-            await github.rest.issues.createComment(params)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
@@ -264,7 +247,7 @@ jobs:
         run: terraform plan -no-color -var "docker_tag=${{ steps.get-latest-tag.outputs.tag }}" -var "run_context=remote"
         continue-on-error: true
 
-      - name: Set Terraform Plan To PR Comment
+      - name: Set Resource Stack Terraform Plan To PR Comment
         uses: ./.github/actions/set_plan_comment
         with:
           FMT_OUTCOME: ${{ steps.fmt.outcome }}
@@ -275,7 +258,7 @@ jobs:
           PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_WORKING_DIR: ${{ env.TF_RESOURCE_WORKING_DIR }}
+          TF_WORKING_DIR: ${{ env.TF_RESOURCE_WORKING_DIR }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

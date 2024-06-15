@@ -17,7 +17,7 @@ message+="\`\`\`${lf}"
 message+="${PLAN_OUTPUT}"
 message+="\`\`\`${lf}"
 message+="</details>${lf}${lf}"
-message+="**Pusher: @${GITHUB_ACTOR}, Action: ${GITHUB_EVENT_NAME}, Working Directory: ${GITHUB_WORKING_DIR}, Workflow: ${GITHUB_WORKFLOW}**"
+message+="**Pusher: @${GITHUB_ACTOR}, Action: ${GITHUB_EVENT_NAME}, Working Directory: ${TF_WORKING_DIR}, Workflow: ${GITHUB_WORKFLOW}**"
 
 # メッセージの出力
 echo -e "$message" > terraform_comment.txt
