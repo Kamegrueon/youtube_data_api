@@ -73,8 +73,8 @@ jobs:
           GITHUB_OUTPUT: $GITHUB_OUTPUT
   common-terraform:
     needs: [is-allow-pull-request, setup]
-    runs-on: ubuntu-latest
     if: needs.setup.outputs.common == 'true' && needs.is-allow-pull-request == 'success'
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
