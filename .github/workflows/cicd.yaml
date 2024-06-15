@@ -88,12 +88,6 @@ jobs:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
-      - id: 'setup-to-google-cloud'
-        name: 'Setup Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-        with:
-          version: '>= 363.0.0'
-
       - name: 'Authorize Docker push'
         # Artifact Registryにpushできるように認証をおこなう
         # Container Registryのときには不要だったArtifact RegistryではRegionの指定が必須
@@ -130,25 +124,11 @@ jobs:
         working-directory: .github/scripts/
         run: chmod +x *.sh
 
-      - id: 'auth'
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - name: Authenticate to Google Cloud
+        uses: ./.github/actions/authenticate
         with:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
-          project_id: ${{ env.PROJECT_ID }}
-
-      - id: 'setup-to-google-cloud'
-        name: 'Setup Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-        with:
-          version: '>= 363.0.0'
-
-      # - name: Authenticate to Google Cloud
-      #   uses: ./.github/actions/authenticate
-      #   with:
-      #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-      #     service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - run: echo "${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}"
       - run: echo "${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}"
