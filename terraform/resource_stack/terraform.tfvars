@@ -1,7 +1,8 @@
 ##########################################
 # Common
 ##########################################
-terraform_sa_email = "terraform@youtube-data-api-385206.iam.gserviceaccount.com"
+terraform_sa_admin_email  = "terraform@youtube-data-api-385206.iam.gserviceaccount.com"
+terraform_sa_viewer_email = "terraform-viewer@youtube-data-api-385206.iam.gserviceaccount.com"
 
 gcp_project_id = "youtube-data-api-385206"
 gcp_region     = "asia-northeast1"
