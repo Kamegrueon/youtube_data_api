@@ -42,7 +42,7 @@ jobs:
     needs: is-allow-pull-request
     if: success()
     outputs:
-      common: ${{ steps.common-filter.outputs.src }}
+      common: ${{ steps.common-filter.outputs.common }}
       src: ${{ steps.src-filter.outputs.src }}
       env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
     steps:
