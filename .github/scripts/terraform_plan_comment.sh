@@ -12,4 +12,4 @@ message+="<details><summary>Show Plan</summary>${lf}\`\`\`terraform${lf}${PLAN_O
 message+="*Pusher: @${GITHUB_ACTOR}, Action: ${GITHUB_EVENT_NAME}, Working Directory: ${GITHUB_WORKING_DIR}, Workflow: ${GITHUB_WORKFLOW}*"
 
 # メッセージの出力
-echo "message=$message" > terraform_comment.txt
+echo -e "message=$message" > terraform_comment.txt

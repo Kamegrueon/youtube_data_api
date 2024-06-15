@@ -211,7 +211,6 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_WORKING_DIR: ${{ env.tf_actions_working_dir }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
-          # GITHUB_OUTPUT: $GITHUB_OUTPUT
 
       - name: Comment Terraform Plan
         uses: actions/github-script@v6
@@ -220,7 +219,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const message = fs.readFileSync('terraform_comment.txt', 'utf-8').toString();
+            const message = fs.readFileSync('.github/scripts/terraform_comment.txt', 'utf-8').toString();
             const params = {
               issue_number: context.issue.number,
               owner: context.repo.owner,
