@@ -1,0 +1,73 @@
+name: Set Terraform Plan To PR Comment
+description: "Display the results of terraform plan as a comment on PR on github"
+
+inputs:
+    FMT_OUTCOME:
+      description: terraform fmt result
+      required: true
+    INIT_OUTCOME:
+      description: terraform init result
+      required: true
+    VALIDATE_OUTCOME:
+      description: terraform validate result
+      required: true
+    VALIDATE_OUTPUT:
+      description: terraform validate output content
+      required: true
+    PLAN_OUTCOME:
+      description: terraform fmt result
+      required: true
+    PLAN_OUTPUT:
+      description: terraform plan output content
+      required: true
+    GITHUB_ACTOR:
+      description: github actor
+      required: true
+    GITHUB_EVENT_NAME:
+      description: github event name
+      required: true
+    TF_WORKING_DIR:
+      description: terraform working directory
+      required: true
+    GITHUB_WORKFLOW:
+      description: github workflow name
+      required: true
+    GITHUB_TOKEN:
+      description: github token
+      required: true
+
+runs:
+  using: "composite"
+  steps:
+      - name: Set Terraform Plan Comment
+        id: terraform_plan_comment
+        working-directory: .github/scripts/
+        shell: bash
+        run: ./terraform_plan_comment.sh
+        env:
+          FMT_OUTCOME: ${{ inputs.FMT_OUTCOME }}
+          INIT_OUTCOME: ${{ inputs.INIT_OUTCOME }}
+          VALIDATE_OUTCOME: ${{ inputs.VALIDATE_OUTCOME }}
+          VALIDATE_OUTPUT: ${{ inputs.VALIDATE_OUTPUT }}
+          PLAN_OUTCOME: ${{ inputs.PLAN_OUTCOME }}
+          PLAN_OUTPUT: ${{ inputs.PLAN_OUTPUT }}
+          GITHUB_ACTOR: ${{ inputs.GITHUB_ACTOR }}
+          GITHUB_EVENT_NAME: ${{ inputs.GITHUB_EVENT_NAME }}
+          TF_WORKING_DIR: ${{ inputs.TF_WORKING_DIR }}
+          GITHUB_WORKFLOW: ${{ inputs.GITHUB_WORKFLOW }}
+
+      - name: Comment Terraform Plan
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ inputs.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const message = fs.readFileSync('.github/scripts/terraform_comment.txt', 'utf-8').toString();
+            const params = {
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            }
+            await github.rest.issues.createComment(params)

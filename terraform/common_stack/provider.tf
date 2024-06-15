@@ -1,3 +1,7 @@
+locals {
+  terraform_sa_email = var.run_context == "remote" ? var.terraform_sa_admin_email : var.terraform_sa_viewer_email
+}
+
 terraform {
   required_version = ">= 1.4.2"
 
@@ -25,7 +29,7 @@ provider "google" {
 # 有効期限の短いトークンを取得するためのデータ
 data "google_service_account_access_token" "default" {
   provider               = google.impersonation
-  target_service_account = var.terraform_sa_email
+  target_service_account = local.terraform_sa_email
   scopes                 = ["userinfo-email", "cloud-platform"]
   lifetime               = "300s"
 }

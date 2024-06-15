@@ -1,5 +1,5 @@
 data "google_service_account" "terraform_sa" {
-  account_id = var.terraform_sa_email
+  account_id = var.terraform_sa_admin_email
 }
 
 resource "google_service_account_iam_member" "terraform_sa" {

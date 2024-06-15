@@ -1,12 +1,14 @@
 ##########################################
 # Common
 ##########################################
-terraform_sa_email = "terraform@youtube-data-api-385206.iam.gserviceaccount.com"
-github_repo_owner  = "Kamegrueon"
-github_repository  = "youtube_data_api"
-gcp_project_id     = "youtube-data-api-385206"
-gcp_region         = "asia-northeast1"
-app_name           = "youtube-data-api"
+terraform_sa_admin_email  = "terraform@youtube-data-api-385206.iam.gserviceaccount.com"
+terraform_sa_viewer_email = "terraform-viewer@youtube-data-api-385206.iam.gserviceaccount.com"
+
+github_repo_owner = "Kamegrueon"
+github_repository = "youtube_data_api"
+gcp_project_id    = "youtube-data-api-385206"
+gcp_region        = "asia-northeast1"
+app_name          = "youtube-data-api"
 
 enable_apis = true
 activate_apis = [
@@ -35,6 +37,10 @@ artifact_registry_configs = [
   },
   {
     name       = "stg"
+    keep_count = 0
+  },
+  {
+    name       = "dev"
     keep_count = 0
   }
 ]
