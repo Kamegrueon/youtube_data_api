@@ -4,11 +4,9 @@ name: deploy
 on:
   push:
     branches:
-      - main
       - stg
   pull_request:
     branches:
-      - main
       - stg
 
 env:
@@ -85,6 +83,9 @@ jobs:
 
     # Workload Identity 連携
     steps:
+      - run: echo "Common Terraform Job"
+        if: always()
+
       - uses: actions/checkout@v4
 
       - name: Make the script files executable
