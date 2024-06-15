@@ -277,6 +277,7 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_WORKING_DIR: ${{ env.TF_RESOURCE_WORKING_DIR }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
