@@ -66,7 +66,7 @@ jobs:
               - 'src/**'
       - name: Set environment string
         id: set-environment
-        run: ./.github/scripts/set_env.sh
+        run: ./.github/scripts/set-env.sh
         env:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
@@ -119,7 +119,7 @@ jobs:
         continue-on-error: true
 
       - name: Set Resource Stack Terraform Plan To PR Comment
-        uses: ./.github/actions/set_plan_comment
+        uses: ./.github/actions/set-plan-comment
         with:
           FMT_OUTCOME: ${{ steps.fmt.outcome }}
           INIT_OUTCOME: ${{ steps.init.outcome }}
@@ -212,7 +212,7 @@ jobs:
       - name: Get Latest Tag
         id: get-latest-tag
         working-directory: .github/scripts/
-        run: ./get_latest_tag.sh
+        run: ./get-latest-tag.sh
         env:
           REGION: ${{ env.REGION }}
           PROJECT_ID: ${{ env.PROJECT_ID }}
@@ -248,7 +248,7 @@ jobs:
         continue-on-error: true
 
       - name: Set Resource Stack Terraform Plan To PR Comment
-        uses: ./.github/actions/set_plan_comment
+        uses: ./.github/actions/set-plan-comment
         with:
           FMT_OUTCOME: ${{ steps.fmt.outcome }}
           INIT_OUTCOME: ${{ steps.init.outcome }}

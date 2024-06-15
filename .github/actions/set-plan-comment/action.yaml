@@ -43,7 +43,7 @@ runs:
         id: terraform_plan_comment
         working-directory: .github/scripts/
         shell: bash
-        run: ./terraform_plan_comment.sh
+        run: ./terraform-plan-comment.sh
         env:
           FMT_OUTCOME: ${{ inputs.FMT_OUTCOME }}
           INIT_OUTCOME: ${{ inputs.INIT_OUTCOME }}
@@ -63,7 +63,7 @@ runs:
           github-token: ${{ inputs.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const message = fs.readFileSync('.github/scripts/terraform_comment.txt', 'utf-8').toString();
+            const message = fs.readFileSync('.github/scripts/terraform-comment.txt', 'utf-8').toString();
             const params = {
               issue_number: context.issue.number,
               owner: context.repo.owner,
