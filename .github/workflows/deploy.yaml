@@ -73,7 +73,7 @@ jobs:
           GITHUB_OUTPUT: $GITHUB_OUTPUT
   common-terraform:
     needs: [is-allow-pull-request, setup]
-    if: needs.setup.outputs.common == 'true' && needs.is-allow-pull-request == 'success'
+    # if: needs.setup.outputs.common == 'true' && needs.is-allow-pull-request == 'success'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -86,6 +86,9 @@ jobs:
     # Workload Identity 連携
     steps:
       - uses: actions/checkout@v4
+
+      - run: echo ${{ needs.setup.outputs.common }}
+      - run: echo ${{ needs.is-allow-pull-request }}
 
       - name: Make the script files executable
         working-directory: .github/scripts/
