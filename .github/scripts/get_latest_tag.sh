@@ -5,7 +5,7 @@ if [ "$LATEST_TAG" == "default" ]; then
   echo "Failed to get the latest tag. Setting tag name to 'default'."
 elif [ "$LATEST_TAG" == "" ]; then
     LATEST_TAG="default"
-    echo "No image found in Artifact Registry. Setting tag name to 'default'.”
+    echo "No image found in Artifact Registry. Setting tag name to 'default'."
 else
   echo "Latest image tag is $LATEST_TAG"
 fi
