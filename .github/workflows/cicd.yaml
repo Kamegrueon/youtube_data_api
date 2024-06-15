@@ -22,6 +22,8 @@ env:
   SERVICE_ACCOUNT: ${{ secrets.TERRAFORM_SERVICE_ACCOUNT }}
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
+  TF_WORKING_DIR: ./terraform/resource_stack
+
 # ジョブ / ステップ / アクションの定義
 jobs:
   is-allow-pull-request:
@@ -114,7 +116,7 @@ jobs:
     environment: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
     defaults:
       run:
-        working-directory: ./terraform/resource_stack
+        working-directory: ${{ env.TF_WORKING_DIR }}
     permissions:
       id-token: write
       contents: read
@@ -203,7 +205,7 @@ jobs:
           PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_WORKING_DIR: ${{ env.tf_actions_working_dir }}
+          GITHUB_WORKING_DIR: ${{ env.TF_WORKING_DIR }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
 
       - name: Comment Terraform Plan
