@@ -28,7 +28,6 @@ jobs:
   is-allow-pull-request:
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${{ vars.ENVIRONMENT }}
       - run: echo "Print ${{ github.event.pull_request.base.ref }}, ${{ github.event.pull_request.head.ref }}"
       - name: Check base branch
         if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref != 'stg'
@@ -170,7 +169,7 @@ jobs:
   resource-terraform:
     needs: [is-allow-pull-request, modified-filter, build, common-terraform]
     runs-on: ubuntu-latest
-    environment: ${{ vars.ENVIRONMENT }}
+    environment: stg
     if: ${{ !failure() }}
 
     defaults:
