@@ -34,6 +34,10 @@ runs:
           echo "fmt=${{ steps.fmt.outcome }}" >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
+      - name: Terraform Workspace Select
+        shell: bash
+        run: terraform workspace select ${{ inputs.workspace }} || terraform workspace new ${{ inputs.workspace }}
+
       - name: Terraform Init
         shell: bash
         id: init
@@ -43,7 +47,3 @@ runs:
         shell: bash
         id: validate
         run: terraform validate -no-color
-
-      - name: Terraform Workspace Select
-        shell: bash
-        run: terraform workspace select ${{ inputs.workspace }} || terraform workspace new ${{ inputs.workspace }}
