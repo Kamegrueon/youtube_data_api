@@ -1,0 +1,40 @@
+name: Set Terraform Plan To PR Comment
+description: "Display the results of terraform plan as a comment on PR on github"
+
+outputs:
+  fmt_outcome:
+    description: terraform fmt result
+    value: ${{ steps.fmt.outcome }}
+  init_outcome:
+    description: terraform init result
+    value: ${{ steps.init.outcome }}
+  validate_outcome:
+    description: terraform validate result
+    value: ${{ steps.validate.outcome }}
+  validate_output:
+    description: terraform validate output content
+    value: ${{ steps.validate.outputs.stdout }}
+
+runs:
+  using: "composite"
+  steps:
+      # https://github.com/hashicorp/setup-terraform
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt
+        shell: bash
+        id: fmt
+        run: |
+          terraform fmt -check -recursive
+          echo "fmt=${{ steps.fmt.outcome }}" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: Terraform Init
+        shell: bash
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        shell: bash
+        id: validate
+        run: terraform validate -no-color
