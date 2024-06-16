@@ -80,6 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
+      src: ${{ needs.setup.outputs.src }}
     defaults:
       run:
         working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
@@ -147,7 +148,7 @@ jobs:
 
   build:
     needs: [is-allow-pull-request, setup, common-terraform]
-    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg' || needs.setup.outputs.env_string == 'dev'
+    if: needs.common-terraform.outputs.src == 'true' || github.ref == 'refs/heads/stg' || needs.setup.outputs.env_string == 'dev'
     outputs:
       env_string: ${{ needs.setup.outputs.env_string || needs.common-terraform.outputs.env_string }}
     environment: ${{ needs.setup.outputs.env_string || needs.common-terraform.outputs.env_string }}
