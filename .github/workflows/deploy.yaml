@@ -93,6 +93,8 @@ jobs:
         if: needs.modified-filter.outputs.common == 'true'
         id: tf-setup
         uses: ./.github/actions/terraform-setup
+        with:
+          workspace: default
 
       - name: Terraform Plan
         if: needs.modified-filter.outputs.common == 'true'
@@ -209,12 +211,11 @@ jobs:
       - name: Print Latest Tag
         run: echo ${{ steps.get-latest-tag.outputs.tag }}
 
-      - name: Terraform Workspace Select
-        run: terraform workspace select ${{ vars.ENVIRONMENT }}
-
       - name: Terraform Setup
         id: tf-setup
         uses: ./.github/actions/terraform-setup
+        with:
+          workspace: ${{ vars.ENVIRONMENT }}
 
       - name: Terraform Plan
         id: plan

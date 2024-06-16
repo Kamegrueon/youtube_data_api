@@ -1,6 +1,11 @@
 name: Set Terraform Plan To PR Comment
 description: "Display the results of terraform plan as a comment on PR on github"
 
+inputs:
+  workspace:
+    description: terraform workspace name
+    required: true
+
 outputs:
   fmt_outcome:
     description: terraform fmt result
@@ -38,3 +43,7 @@ runs:
         shell: bash
         id: validate
         run: terraform validate -no-color
+
+      - name: Terraform Workspace Select
+        shell: bash
+        run: terraform workspace select ${{ inputs.workspace }}
