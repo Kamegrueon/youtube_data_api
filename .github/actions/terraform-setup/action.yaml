@@ -1,5 +1,5 @@
-name: Set Terraform Plan To PR Comment
-description: "Display the results of terraform plan as a comment on PR on github"
+name: Setup Before Terraform Plan & Apply
+description: "Setup Before Terraform Plan & Apply"
 
 inputs:
   workspace:
