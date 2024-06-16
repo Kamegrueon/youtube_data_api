@@ -209,12 +209,12 @@ jobs:
       - name: Print Latest Tag
         run: echo ${{ steps.get-latest-tag.outputs.tag }}
 
+      - name: Terraform Workspace Select
+        run: terraform workspace select ${{ vars.ENVIRONMENT }}
+
       - name: Terraform Setup
         id: tf-setup
         uses: ./.github/actions/terraform-setup
-
-      - name: Terraform Workspace Select
-        run: terraform workspace select ${{ vars.ENVIRONMENT }}
 
       - name: Terraform Plan
         id: plan
