@@ -46,4 +46,4 @@ runs:
 
       - name: Terraform Workspace Select
         shell: bash
-        run: terraform workspace select ${{ inputs.workspace }}
+        run: terraform workspace select ${{ inputs.workspace }} || terraform workspace new ${{ inputs.workspace }}
