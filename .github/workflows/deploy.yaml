@@ -95,6 +95,7 @@ jobs:
         uses: ./.github/actions/terraform-setup
         with:
           workspace: default
+          working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
 
       - name: Terraform Plan
         if: needs.modified-filter.outputs.common == 'true'
@@ -216,6 +217,7 @@ jobs:
         uses: ./.github/actions/terraform-setup
         with:
           workspace: ${{ vars.ENVIRONMENT }}
+          working-directory: ${{ env.TF_RESOURCE_WORKING_DIR }}
 
       - name: Terraform Plan
         id: plan
