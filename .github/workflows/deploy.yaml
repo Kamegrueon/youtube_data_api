@@ -95,6 +95,11 @@ jobs:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
+      - name: Make the script files executable
+        shell: bash
+        working-directory: .github/scripts/
+        run: chmod +x *.sh
+
       #   # https://github.com/hashicorp/setup-terraform
       #   - uses: hashicorp/setup-terraform@v3
 
@@ -210,6 +215,11 @@ jobs:
         with:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Make the script files executable
+        shell: bash
+        working-directory: .github/scripts/
+        run: chmod +x *.sh
 
       - name: Get Latest Tag
         id: get-latest-tag

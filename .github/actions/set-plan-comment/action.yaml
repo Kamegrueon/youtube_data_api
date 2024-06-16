@@ -39,11 +39,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-      - name: Make the script files executable
-        shell: bash
-        working-directory: .github/scripts/
-        run: chmod +x *.sh
-
       - name: Set Terraform Plan Comment
         id: terraform_plan_comment
         working-directory: .github/scripts/
