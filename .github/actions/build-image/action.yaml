@@ -1,0 +1,38 @@
+name: Build Cloud Run Image
+description: "If src directory changed then Build Cloud Run Image"
+
+inputs:
+    region:
+      description: terraform fmt result
+      required: true
+    project_id:
+      description: terraform init result
+      required: true
+    environment:
+      description: terraform validate result
+      required: true
+    repository:
+      description: terraform validate output content
+      required: true
+    docker-file-path:
+      description: d
+      required: true
+
+runs:
+  using: "composite"
+  steps:
+      - name: "Authorize Docker push"
+        shell: bash
+        # Artifact Registryにpushできるように認証をおこなう
+        run: gcloud auth configure-docker ${{ inputs.region }}-docker.pkg.dev
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src
+          file: ${{ inputs.docker-file-path }}
+          push: true
+          tags: ${{ inputs.region }}-docker.pkg.dev/${{ inputs.project_id }}/${{ inputs.environment }}-${{ inputs.repository }}/${{ inputs.environment }}-api-image:${{ github.sha }}
