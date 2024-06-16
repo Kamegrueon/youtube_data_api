@@ -4,11 +4,9 @@ name: deploy
 on:
   push:
     branches:
-      - main
       - stg
   pull_request:
     branches:
-      - main
       - stg
 
 env:
@@ -30,6 +28,7 @@ jobs:
   is-allow-pull-request:
     runs-on: ubuntu-latest
     steps:
+      - run: echo ${{ vars.ENVIRONMENT }}
       - run: echo "Print ${{ github.event.pull_request.base.ref }}, ${{ github.event.pull_request.head.ref }}"
       - name: Check base branch
         if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref != 'stg'
@@ -44,13 +43,8 @@ jobs:
     outputs:
       common: ${{ steps.common-filter.outputs.common }}
       src: ${{ steps.src-filter.outputs.src }}
-    #   env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
     steps:
       - uses: actions/checkout@v4
-
-      #   - name: Make the script files executable
-      #     working-directory: .github/scripts/
-      #     run: chmod +x *.sh
 
       - uses: dorny/paths-filter@v3
         id: common-filter
@@ -64,17 +58,12 @@ jobs:
           filters: |
             src:
               - 'src/**'
-    #   - name: Set environment string
-    #     id: set-environment
-    #     run: ./.github/scripts/set-env.sh
-    #     env:
-    #       GITHUB_REF: ${{ github.ref }}
-    #       GITHUB_BASE_REF: ${{ github.base_ref }}
-    #       GITHUB_OUTPUT: $GITHUB_OUTPUT
+
   common-terraform:
     needs: [is-allow-pull-request, modified-filter]
     if: ${{ !failure() }}
     runs-on: ubuntu-latest
+    environment: stg
     defaults:
       run:
         working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
@@ -96,25 +85,10 @@ jobs:
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
       - name: Make the script files executable
+        if: needs.modified-filter.outputs.common == 'true'
         shell: bash
         working-directory: .github/scripts/
         run: chmod +x *.sh
-
-      #   # https://github.com/hashicorp/setup-terraform
-      #   - uses: hashicorp/setup-terraform@v3
-
-      #   - name: Terraform fmt
-      #     id: fmt
-      #     run: terraform fmt -check -recursive
-      #     continue-on-error: true
-
-      #   - name: Terraform Init
-      #     id: init
-      #     run: terraform init
-
-      #   - name: Terraform Validate
-      #     id: validate
-      #     run: terraform validate -no-color
 
       - name: Terraform Setup
         if: needs.modified-filter.outputs.common == 'true'
@@ -156,8 +130,8 @@ jobs:
     needs: [is-allow-pull-request, modified-filter, common-terraform]
     if: needs.modified-filter.outputs.src == 'true' || github.ref == 'refs/heads/stg'
     runs-on: ubuntu-latest
-    # outputs:
-    #   env_string: ${{ needs.setup.outputs.env_string }}
+    environment: stg
+
     defaults:
       run:
         working-directory: .
@@ -196,8 +170,9 @@ jobs:
   resource-terraform:
     needs: [is-allow-pull-request, modified-filter, build, common-terraform]
     runs-on: ubuntu-latest
-    if: ${{ !failure() }}
     environment: ${{ vars.ENVIRONMENT }}
+    if: ${{ !failure() }}
+
     defaults:
       run:
         working-directory: ${{ env.TF_RESOURCE_WORKING_DIR }}
