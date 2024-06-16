@@ -10,6 +10,7 @@ on:
     branches:
       - main
       - stg
+  workflow_dispatch: {}
 
 env:
   # GCPのPROJECT_ID
@@ -36,10 +37,11 @@ jobs:
         run: |
           echo "Pull requests to main are only allowed from the stg branch."
           exit 1
-  # src配下のファイルの変更検知
+
+  # src配下とcommon_stack配下のファイルの変更検知
   setup:
     runs-on: ubuntu-latest
-    needs: is-allow-pull-request
+    needs: [is-allow-pull-request]
     if: ${{ !failure() }}
     outputs:
       common: ${{ steps.common-filter.outputs.common }}
@@ -66,15 +68,18 @@ jobs:
               - 'src/**'
       - name: Set environment string
         id: set-environment
-        run: ./.github/scripts/set_env.sh
+        run: ./.github/scripts/set-env.sh
         env:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
           GITHUB_OUTPUT: $GITHUB_OUTPUT
+
   common-terraform:
     needs: [is-allow-pull-request, setup]
-    if: needs.setup.outputs.common == 'true'
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
+    outputs:
+      env_string: ${{ needs.setup.outputs.env_string }}
     defaults:
       run:
         working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
@@ -86,45 +91,43 @@ jobs:
     # Workload Identity 連携
     steps:
       - uses: actions/checkout@v4
-
-      - name: Make the script files executable
-        working-directory: .github/scripts/
-        run: chmod +x *.sh
+        if: needs.setup.outputs.common == 'true'
 
       - name: Authenticate to Google Cloud
+        if: needs.setup.outputs.common == 'true'
         uses: ./.github/actions/authenticate
         with:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
-      # https://github.com/hashicorp/setup-terraform
-      - uses: hashicorp/setup-terraform@v3
+      - name: Make the script files executable
+        if: needs.setup.outputs.common == 'true'
+        shell: bash
+        working-directory: .github/scripts/
+        run: chmod +x *.sh
 
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check -recursive
-        continue-on-error: true
-
-      - name: Terraform Init
-        id: init
-        run: terraform init
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
+      - name: Terraform Setup
+        if: needs.setup.outputs.common == 'true'
+        id: tf-setup
+        uses: ./.github/actions/terraform-setup
+        with:
+          workspace: default
+          working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
 
       - name: Terraform Plan
+        if: needs.setup.outputs.common == 'true'
         id: plan
         run: terraform plan -no-color -var "run_context=remote"
         continue-on-error: true
 
       - name: Set Resource Stack Terraform Plan To PR Comment
-        uses: ./.github/actions/set_plan_comment
+        if: needs.setup.outputs.common == 'true'
+        uses: ./.github/actions/set-plan-comment
         with:
-          FMT_OUTCOME: ${{ steps.fmt.outcome }}
-          INIT_OUTCOME: ${{ steps.init.outcome }}
-          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
-          VALIDATE_OUTPUT: ${{ steps.validate.outputs.stdout }}
+          FMT_OUTCOME: ${{ steps.tf-setup.outputs.fmt_outcome }}
+          INIT_OUTCOME: ${{ steps.tf-setup.outputs.init_outcome }}
+          VALIDATE_OUTCOME: ${{ steps.tf-setup.outputs.validate_outcome }}
+          VALIDATE_OUTPUT: ${{ steps.tf-setup.outputs.validate_output}}
           PLAN_OUTCOME: ${{ steps.plan.outcome }}
           PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
           GITHUB_ACTOR: ${{ github.actor }}
@@ -139,15 +142,17 @@ jobs:
 
       # mainとstgにpushした場合は appｌｙ が実行される
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: needs.setup.outputs.common == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve -var "run_context=remote"
 
   build:
     needs: [is-allow-pull-request, setup, common-terraform]
-    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg'
-    runs-on: ubuntu-latest
+    if: needs.setup.outputs.src == 'true' || github.ref == 'refs/heads/stg' || needs.setup.outputs.env_string == 'dev'
     outputs:
-      env_string: ${{ needs.setup.outputs.env_string }}
+      env_string: ${{ needs.setup.outputs.env_string || needs.common-terraform.outputs.env_string }}
+    environment: ${{ needs.setup.outputs.env_string || needs.common-terraform.outputs.env_string }}
+    runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: .
@@ -167,26 +172,21 @@ jobs:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
-      - name: "Authorize Docker push"
-        # Artifact Registryにpushできるように認証をおこなう
-        # Container Registryのときには不要だったArtifact RegistryではRegionの指定が必須
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Build Cloud Run Image
+        uses: ./.github/actions/build-image
         with:
-          context: ./src
-          file: ./src/Dockerfile.prd
-          push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}/${{ needs.setup.outputs.env_string }}-api-image:${{ github.sha }}
+          region: ${{ env.REGION }}
+          project_id: ${{ env.PROJECT_ID }}
+          environment: ${{ vars.ENVIRONMENT }}
+          repository: ${{ env.BASE_REPOSITORY_NAME }}
+          docker-file-path: ${{ vars.DOCKER_FILE_PATH }}
+
   resource-terraform:
     needs: [is-allow-pull-request, setup, build, common-terraform]
     runs-on: ubuntu-latest
+    environment: ${{ needs.setup.outputs.env_string || needs.common-terraform.outputs.env_string || needs.build.outputs.env_string }}
     if: ${{ !failure() }}
-    environment: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
+
     defaults:
       run:
         working-directory: ${{ env.TF_RESOURCE_WORKING_DIR }}
@@ -199,48 +199,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Make the script files executable
-        working-directory: .github/scripts/
-        run: chmod +x *.sh
-
       - name: Authenticate to Google Cloud
         uses: ./.github/actions/authenticate
         with:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
+      - name: Make the script files executable
+        shell: bash
+        working-directory: .github/scripts/
+        run: chmod +x *.sh
+
       - name: Get Latest Tag
         id: get-latest-tag
         working-directory: .github/scripts/
-        run: ./get_latest_tag.sh
+        run: ./get-latest-tag.sh
         env:
           REGION: ${{ env.REGION }}
           PROJECT_ID: ${{ env.PROJECT_ID }}
-          REPOSITORY_NAME: ${{ needs.setup.outputs.env_string }}-${{ env.BASE_REPOSITORY_NAME }}
-          ENV_STRING: ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
+          REPOSITORY_NAME: ${{ vars.ENVIRONMENT }}-${{ env.BASE_REPOSITORY_NAME }}
+          ENVIRONMENT: ${{ vars.ENVIRONMENT }}
           GITHUB_OUTPUT: $GITHUB_OUTPUT
 
       - name: Print Latest Tag
         run: echo ${{ steps.get-latest-tag.outputs.tag }}
 
-      # https://github.com/hashicorp/setup-terraform
-      - uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check -recursive
-        continue-on-error: true
-
-      - name: Terraform Init
-        id: init
-        run: terraform init
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
-
-      - name: Terraform Workspace Select
-        run: terraform workspace select ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }} || terraform workspace new ${{ needs.setup.outputs.env_string || needs.build.outputs.env_string }}
+      - name: Terraform Setup
+        id: tf-setup
+        uses: ./.github/actions/terraform-setup
+        with:
+          workspace: ${{ vars.ENVIRONMENT }}
+          working-directory: ${{ env.TF_RESOURCE_WORKING_DIR }}
 
       - name: Terraform Plan
         id: plan
@@ -248,17 +237,17 @@ jobs:
         continue-on-error: true
 
       - name: Set Resource Stack Terraform Plan To PR Comment
-        uses: ./.github/actions/set_plan_comment
+        uses: ./.github/actions/set-plan-comment
         with:
-          FMT_OUTCOME: ${{ steps.fmt.outcome }}
-          INIT_OUTCOME: ${{ steps.init.outcome }}
-          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
-          VALIDATE_OUTPUT: ${{ steps.validate.outputs.stdout }}
+          FMT_OUTCOME: ${{ steps.tf-setup.outputs.fmt_outcome }}
+          INIT_OUTCOME: ${{ steps.tf-setup.outputs.init_outcome }}
+          VALIDATE_OUTCOME: ${{ steps.tf-setup.outputs.validate_outcome }}
+          VALIDATE_OUTPUT: ${{ steps.tf-setup.outputs.validate_output}}
           PLAN_OUTCOME: ${{ steps.plan.outcome }}
           PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          TF_WORKING_DIR: ${{ env.TF_RESOURCE_WORKING_DIR }}
+          TF_WORKING_DIR: ${{ env.TF_COMMON_WORKING_DIR }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -266,9 +255,9 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-      # mainとstgにpushした場合は appｌｙ が実行される
+      # planが成功した場合は appｌｙ が実行される
       - name: Terraform Apply
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stg') && github.event_name == 'push'
+        if: github.event_name == 'push'
         run: terraform apply -auto-approve -var "docker_tag=${{ steps.get-latest-tag.outputs.tag }}" -var "run_context=remote"
 
       # main ブランチに push した場合にだけ stg環境のdestroyが実行される
