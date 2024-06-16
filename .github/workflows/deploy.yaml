@@ -64,7 +64,7 @@ jobs:
               - 'src/**'
       - name: Set environment string
         id: set-environment
-        run: ./.github/scripts/set_env.sh
+        run: ./.github/scripts/set-env.sh
         env:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
