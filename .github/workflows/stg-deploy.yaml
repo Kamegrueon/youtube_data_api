@@ -25,20 +25,9 @@ env:
 
 # ジョブ / ステップ / アクションの定義
 jobs:
-  is-allow-pull-request:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Print ${{ github.event.pull_request.base.ref }}, ${{ github.event.pull_request.head.ref }}"
-      - name: Check base branch
-        if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref != 'stg'
-        run: |
-          echo "Pull requests to main are only allowed from the stg branch."
-          exit 1
   # src配下とcommon_stack配下のファイルの変更検知
   modified-filter:
     runs-on: ubuntu-latest
-    needs: is-allow-pull-request
-    if: ${{ !failure() }}
     outputs:
       common: ${{ steps.common-filter.outputs.common }}
       src: ${{ steps.src-filter.outputs.src }}
@@ -59,8 +48,7 @@ jobs:
               - 'src/**'
 
   common-terraform:
-    needs: [is-allow-pull-request, modified-filter]
-    if: ${{ !failure() }}
+    needs: [modified-filter]
     runs-on: ubuntu-latest
     environment: stg
     defaults:
@@ -129,7 +117,7 @@ jobs:
         run: terraform apply -auto-approve -var "run_context=remote"
 
   build:
-    needs: [is-allow-pull-request, modified-filter, common-terraform]
+    needs: [modified-filter, common-terraform]
     if: needs.modified-filter.outputs.src == 'true' || github.ref == 'refs/heads/stg'
     runs-on: ubuntu-latest
     environment: stg
@@ -153,24 +141,32 @@ jobs:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
-      - name: "Authorize Docker push"
-        # Artifact Registryにpushできるように認証をおこなう
-        # Container Registryのときには不要だったArtifact RegistryではRegionの指定が必須
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Build Cloud Run Image
+        uses: ./.github/actions/build-image
         with:
-          context: ./src
-          file: ./src/Dockerfile.prd
-          push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ vars.ENVIRONMENT }}-${{ env.BASE_REPOSITORY_NAME }}/${{ vars.ENVIRONMENT }}-api-image:${{ github.sha }}
+          region: ${{ env.REGION }}
+          project_id: ${{ env.PROJECT_ID }}
+          environment: ${{ vars.ENVIRONMENT }}
+          repository: ${{ env.BASE_REPOSITORY_NAME }}
+          docker-file-path: ./src/Dockerfile.prd
+
+    #   - name: "Authorize Docker push"
+    #     # Artifact Registryにpushできるように認証をおこなう
+    #     run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+    #   - name: Set up Docker Buildx
+    #     uses: docker/setup-buildx-action@v3
+
+    #   - name: Build and push
+    #     uses: docker/build-push-action@v5
+    #     with:
+    #       context: ./src
+    #       file: ./src/Dockerfile.prd
+    #       push: true
+    #       tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ vars.ENVIRONMENT }}-${{ env.BASE_REPOSITORY_NAME }}/${{ vars.ENVIRONMENT }}-api-image:${{ github.sha }}
 
   resource-terraform:
-    needs: [is-allow-pull-request, modified-filter, build, common-terraform]
+    needs: [modified-filter, build, common-terraform]
     runs-on: ubuntu-latest
     environment: stg
     if: ${{ !failure() }}
