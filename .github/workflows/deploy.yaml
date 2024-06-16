@@ -76,7 +76,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       env_string: ${{ needs.setup.outputs.env_string }}
-    environment: ${{ needs.setup.outputs.env_string }}
     defaults:
       run:
         working-directory: ${{ env.TF_COMMON_WORKING_DIR }}
