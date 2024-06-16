@@ -41,6 +41,7 @@ runs:
   steps:
       - name: Set Terraform Plan Comment
         id: terraform_plan_comment
+        if: github.event_name == 'pull_request'
         working-directory: .github/scripts/
         shell: bash
         run: ./terraform-plan-comment.sh
