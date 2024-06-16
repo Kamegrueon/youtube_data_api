@@ -71,7 +71,7 @@ jobs:
           GITHUB_OUTPUT: $GITHUB_OUTPUT
   common-terraform:
     needs: [is-allow-pull-request, setup]
-    if: needs.setup.outputs.common == 'true'
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -83,16 +83,16 @@ jobs:
 
     # Workload Identity 連携
     steps:
-      - run: echo "Common Terraform Job"
-        if: always()
-
       - uses: actions/checkout@v4
+        if: needs.setup.outputs.common == 'true'
 
       - name: Make the script files executable
+        if: needs.setup.outputs.common == 'true'
         working-directory: .github/scripts/
         run: chmod +x *.sh
 
       - name: Authenticate to Google Cloud
+        if: needs.setup.outputs.common == 'true'
         uses: ./.github/actions/authenticate
         with:
           workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
@@ -100,26 +100,32 @@ jobs:
 
       # https://github.com/hashicorp/setup-terraform
       - uses: hashicorp/setup-terraform@v3
+        if: needs.setup.outputs.common == 'true'
 
       - name: Terraform fmt
+        if: needs.setup.outputs.common == 'true'
         id: fmt
         run: terraform fmt -check -recursive
         continue-on-error: true
 
       - name: Terraform Init
+        if: needs.setup.outputs.common == 'true'
         id: init
         run: terraform init
 
       - name: Terraform Validate
+        if: needs.setup.outputs.common == 'true'
         id: validate
         run: terraform validate -no-color
 
       - name: Terraform Plan
+        if: needs.setup.outputs.common == 'true'
         id: plan
         run: terraform plan -no-color -var "run_context=remote"
         continue-on-error: true
 
       - name: Set Resource Stack Terraform Plan To PR Comment
+        if: needs.setup.outputs.common == 'true'
         uses: ./.github/actions/set-plan-comment
         with:
           FMT_OUTCOME: ${{ steps.fmt.outcome }}
