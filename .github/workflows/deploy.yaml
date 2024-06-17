@@ -258,7 +258,7 @@ jobs:
 
       # planが成功した場合は appｌｙ が実行される
       - name: Terraform Apply
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || vars.ENVIRONMENT == 'dev'
         run: terraform apply -auto-approve -var "docker_tag=${{ steps.get-latest-tag.outputs.tag }}" -var "run_context=remote"
 
       # main ブランチに push した場合にだけ stg環境のdestroyが実行される
