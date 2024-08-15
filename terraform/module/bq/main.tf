@@ -1,127 +1,40 @@
+locals {
+  files       = fileset("${path.module}/static_tables", "*/*.yaml")
+  directories = distinct([for path in local.files : dirname(path)])
+}
+
 resource "google_bigquery_dataset" "dataset" {
-  dataset_id  = "${terraform.workspace}_videos"
+  for_each    = toset(local.directories)
+  dataset_id  = "${terraform.workspace}_${each.key}"
   location    = "US"
   description = "YouTube Data API Dataset"
 }
 
-resource "google_bigquery_table" "most_popular" {
-  dataset_id = google_bigquery_dataset.dataset.dataset_id
-  table_id   = "${terraform.workspace}_most_popular"
+resource "google_bigquery_table" "tables" {
+  for_each   = local.files
+  dataset_id = "${terraform.workspace}_${split("/", each.value)[0]}"
+
+  table_id = "${terraform.workspace}_${trimsuffix(split("/", each.value)[1], ".yaml")}"
+  schema   = jsonencode(yamldecode(file("${path.module}/static_tables/${each.value}"))["schema"])
+
+  # パーティショニング設定
   time_partitioning {
-    type  = "DAY"
-    field = "CREATED_AT"
+    type  = yamldecode(file("${path.module}/static_tables/${each.value}"))["partitioning"]["type"]
+    field = yamldecode(file("${path.module}/static_tables/${each.value}"))["partitioning"]["field"]
   }
 
-  clustering = ["CHANNEL_ID", "CATEGORY_ID"]
+  clustering = yamldecode(file("${path.module}/static_tables/${each.value}"))["clustering"]["fields"]
 
-  schema = <<EOF
-[
-  {
-    "name": "VIDEO_ID",
-    "mode": "REQUIRED",
-    "type": "STRING",
-    "description": "動画ID",
-    "fields": []
-  },
-  {
-    "name": "TITLE",
-    "mode": "REQUIRED",
-    "type": "STRING",
-    "description": "動画のタイトル",
-    "fields": []
-  },
-  {
-    "name": "CHANNEL_ID",
-    "mode": "REQUIRED",
-    "type": "STRING",
-    "description": "チャンネルID",
-    "fields": []
-  },
-  {
-    "name": "CHANNEL_TITLE",
-    "mode": "REQUIRED",
-    "type": "STRING",
-    "description": "チャンネルのタイトル",
-    "fields": []
-  },
-  {
-    "name": "PUBLISHED_AT",
-    "mode": "REQUIRED",
-    "type": "DATETIME",
-    "description": "投稿日",
-    "fields": []
-  },
-  {
-    "name": "CREATED_AT",
-    "mode": "REQUIRED",
-    "type": "DATETIME",
-    "description": "データ取得日",
-    "fields": []
-  },
-  {
-    "name": "CATEGORY_ID",
-    "mode": "REQUIRED",
-    "type": "INTEGER",
-    "description": "カテゴリID",
-    "fields": []
-  },
-  {
-    "name": "DURATION",
-    "mode": "REQUIRED",
-    "type": "STRING",
-    "description": "動画の長さ",
-    "fields": []
-  },
-  {
-    "name": "VIEW_COUNT",
-    "mode": "NULLABLE",
-    "type": "INTEGER",
-    "description": "視聴回数",
-    "fields": []
-  },
-  {
-    "name": "LIKE_COUNT",
-    "mode": "NULLABLE",
-    "type": "INTEGER",
-    "description": "高評価数",
-    "fields": []
-  },
-  {
-    "name": "DISLIKE_COUNT",
-    "mode": "NULLABLE",
-    "type": "INTEGER",
-    "description": "低評価数",
-    "fields": []
-  },
-  {
-    "name": "FAVORITE_COUNT",
-    "mode": "NULLABLE",
-    "type": "INTEGER",
-    "description": "お気に入り数",
-    "fields": []
-  },
-  {
-    "name": "COMMENT_COUNT",
-    "mode": "NULLABLE",
-    "type": "INTEGER",
-    "description": "コメント数",
-    "fields": []
-  },
-  {
-    "name": "TAGS",
-    "mode": "REPEATED",
-    "type": "STRING",
-    "description": "タグ情報",
-    "fields": []
-  }
-]
-EOF
+  deletion_protection = false
 }
 
 
 
+
 resource "google_bigquery_dataset_iam_member" "bigquery_editor_role" {
-  dataset_id = google_bigquery_dataset.dataset.dataset_id
+  for_each = google_bigquery_dataset.dataset
+
+  dataset_id = each.value.dataset_id
   role       = "roles/bigquery.dataEditor"
-  member     = "serviceAccount:${var.service_account_app_email}" # メンバーを指定します。
+  member     = "serviceAccount:${var.service_account_app_email}"
 }
