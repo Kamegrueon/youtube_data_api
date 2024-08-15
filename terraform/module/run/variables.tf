@@ -14,6 +14,7 @@ variable "repository_location" {}
 variable "repository_name" {}
 variable "service_account_app_email" {}
 variable "service_account_invoker_email" {}
+variable "environment" {}
 
 variable "pubsub_topic_name" {}
 variable "storage_bucket_name" {}

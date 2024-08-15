@@ -1,6 +1,7 @@
 resource "google_storage_bucket" "bucket" {
-  name     = "${terraform.workspace}-${var.gcp_project_id}-bucket"
-  location = var.gcp_region
+  name          = "${terraform.workspace}-${var.gcp_project_id}-bucket"
+  location      = var.gcp_region
+  force_destroy = terraform.workspace == "prd" ? false : true
 }
 
 resource "google_storage_bucket_iam_member" "member" {
