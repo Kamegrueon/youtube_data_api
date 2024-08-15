@@ -53,6 +53,12 @@ module "storage" {
   depends_on                = [module.enable_google_apis]
 }
 
+module "bq" {
+  source                    = "../module/bq"
+  service_account_app_email = data.terraform_remote_state.common.outputs.app_service_account.email
+  depends_on                = [module.enable_google_apis]
+}
+
 module "run" {
   source                        = "../module/run"
   gcp_project_id                = var.gcp_project_id
@@ -66,5 +72,6 @@ module "run" {
   docker_tag                    = var.docker_tag
   storage_bucket_name           = module.storage.storage_bucket_name
   pubsub_topic_name             = module.pubsub_topic.pubsub_topic_name
+  environment                   = terraform.workspace
   depends_on                    = [module.enable_google_apis, module.pubsub_topic, module.storage]
 }
