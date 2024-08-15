@@ -29,9 +29,9 @@ resource "google_bigquery_table" "tables" {
 
   lifecycle {
     ignore_changes = [
-      "schema",
-      "time_partitioning",
-      "clustering",
+      schema,
+      time_partitioning,
+      clustering,
     ]
   }
 }
