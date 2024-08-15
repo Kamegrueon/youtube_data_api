@@ -265,5 +265,7 @@ jobs:
       - name: Terraform Destroy Stg
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
+          terraform workspace select dev || terraform workspace new dev
+          terraform destroy -auto-approve -var "docker_tag=''" -var "run_context=remote"
           terraform workspace select stg || terraform workspace new stg
           terraform destroy -auto-approve -var "docker_tag=''" -var "run_context=remote"

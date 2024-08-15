@@ -25,10 +25,16 @@ resource "google_bigquery_table" "tables" {
 
   clustering = yamldecode(file("${path.module}/static_tables/${each.value}"))["clustering"]["fields"]
 
-  deletion_protection = false
+  deletion_protection = terraform.workspace == "prd" ? true : false
+
+  lifecycle {
+    ignore_changes = [
+      "schema",
+      "time_partitioning",
+      "clustering",
+    ]
+  }
 }
-
-
 
 
 resource "google_bigquery_dataset_iam_member" "bigquery_editor_role" {
