@@ -72,5 +72,6 @@ module "run" {
   docker_tag                    = var.docker_tag
   storage_bucket_name           = module.storage.storage_bucket_name
   pubsub_topic_name             = module.pubsub_topic.pubsub_topic_name
+  environment                   = terraform.workspace
   depends_on                    = [module.enable_google_apis, module.pubsub_topic, module.storage]
 }

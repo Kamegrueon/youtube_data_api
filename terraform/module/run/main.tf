@@ -59,6 +59,11 @@ resource "google_cloud_run_v2_service" "api" {
         name  = "SECRET_YOUTUBE_API_VERSION"
         value = "1"
       }
+
+      env {
+        name  = "ENVIRONMENT"
+        value = var.environment
+      }
     }
   }
 
