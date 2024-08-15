@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
 
-def extract_datetime_from_file_name(file_name: str) -> str:
-    date = f"{file_name[0:4]}-{file_name[4:6]}-{file_name[6:8]}"
-    time = f"{file_name[8:10]}:{file_name[10:12]}:00"
-    return f"{date} {time}"
-
-
 def extract_datetime_from_file_path(file_path: str) -> str:
     split_str = file_path.split("/")[1]
     date = f"{split_str[0:4]}-{split_str[4:6]}-{split_str[6:8]}"
@@ -20,7 +14,7 @@ def extract_published(published_at: str) -> str:
 
 
 def extract_most_popular(data: dict, created_at: str) -> list[dict]:
-    videos_json = [
+    videos_dict = [
         {
             "VIDEO_ID": item["id"],
             "TITLE": item["snippet"]["title"],
@@ -40,4 +34,4 @@ def extract_most_popular(data: dict, created_at: str) -> list[dict]:
         } for item in data["items"]
     ]
 
-    return videos_json
+    return videos_dict
