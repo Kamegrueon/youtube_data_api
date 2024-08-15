@@ -35,7 +35,7 @@ resource "google_cloud_run_v2_service" "api" {
         value = var.gcp_project_id  # Google Cloud プロジェクトのIDを設定します。
       }
       env {
-        name  = "PUBSUB_GENERATE_ANNOTATIONS_TOPIC" # Pub/Subのトピック名を指定します。
+        name  = "PUBSUB_TOPIC" # Pub/Subのトピック名を指定します。
         value = var.pubsub_topic_name               # Pub/Subのメイントピックの名前を設定します。
       }
       env {
