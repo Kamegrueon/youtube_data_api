@@ -18,6 +18,7 @@ from env import (
     SECRET_YOUTUBE_API_VERSION,
     YOUTUBE_API_SERVICE_NAME,
     YOUTUBE_API_VERSION,
+    ENVIRONMENT
 )
 from gcp.bq import BqInterface
 from gcp.gcs import GcsInterface
@@ -86,8 +87,6 @@ async def process_message():
         version_id=SECRET_YOUTUBE_API_VERSION
     )
 
-    logger.info(developer_key)
-
     youtube = YoutubeApiRequest(
         youtube_api_service_name=YOUTUBE_API_SERVICE_NAME,
         youtube_api_version=YOUTUBE_API_VERSION,
@@ -126,8 +125,8 @@ async def load_bq(file_path):
     bq = BqInterface(project_id=PROJECT_ID)
     blob = gcs.get_file(file_path)
 
-    dataset_name = "videos"
-    table_name = "most_popular"
+    dataset_name = f"{ENVIRONMENT}_videos"
+    table_name = f"{ENVIRONMENT}_most_popular"
 
     if blob is not None:
         with blob.open(mode="r", encoding='utf-8') as f:
@@ -136,9 +135,9 @@ async def load_bq(file_path):
             created_at = extract_datetime_from_file_path(file_path)
             extract_data = extract_most_popular(data, created_at)
 
-    logger.info("Insert Table Data")
-    bq.insert_table_data(
-        dataset_name=dataset_name,
-        table_name=table_name,
-        data=extract_data
+        logger.info("Insert Table Data")
+        bq.insert_table_data(
+            dataset_name=dataset_name,
+            table_name=table_name,
+            data=extract_data
     )
