@@ -53,10 +53,15 @@ module "storage" {
   depends_on                = [module.enable_google_apis]
 }
 
-module "bq" {
-  source                    = "../module/bq"
+module "bq_datasets" {
+  source                    = "../module/bq/bq_datasets"
   service_account_app_email = data.terraform_remote_state.common.outputs.app_service_account.email
   depends_on                = [module.enable_google_apis]
+}
+
+module "bq_tables" {
+  source     = "../module/bq/bq_tables"
+  depends_on = [module.enable_google_apis, module.bq_datasets]
 }
 
 module "run" {

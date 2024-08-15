@@ -261,11 +261,16 @@ jobs:
         if: github.event_name == 'push' || needs.setup.outputs.env_string == 'dev'
         run: terraform apply -auto-approve -var "docker_tag=${{ steps.get-latest-tag.outputs.tag }}" -var "run_context=remote"
 
+      # stg ブランチに push した場合にだけ dev環境のdestroyが実行される
+      - name: Terraform Destroy Stg
+        if: github.ref == 'refs/heads/stg' && github.event_name == 'push'
+        run: |
+          terraform workspace select dev || terraform workspace new dev
+          terraform destroy -auto-approve -var "docker_tag=''" -var "run_context=remote"
+
       # main ブランチに push した場合にだけ stg環境のdestroyが実行される
       - name: Terraform Destroy Stg
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          terraform workspace select dev || terraform workspace new dev
-          terraform destroy -auto-approve -var "docker_tag=''" -var "run_context=remote"
           terraform workspace select stg || terraform workspace new stg
           terraform destroy -auto-approve -var "docker_tag=''" -var "run_context=remote"
