@@ -2,12 +2,6 @@ data "google_service_account" "terraform_sa" {
   account_id = var.terraform_sa_admin_email
 }
 
-resource "google_service_account_iam_member" "terraform_sa" {
-  service_account_id = data.google_service_account.terraform_sa.id
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.youtube_data_api_pool.name}/attribute.repository/${var.github_repo_owner}/${var.github_repository}"
-  role               = var.terraform_role
-}
-
 resource "google_service_account" "app" {
   # account id can not be longer than 28 characters
   account_id   = substr("${var.app_name}-sa", 0, 28)
