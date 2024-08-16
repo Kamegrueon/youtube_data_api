@@ -1,0 +1,124 @@
+from typing import Optional
+from pydantic import BaseModel
+
+class Thumbnail(BaseModel):
+    url: str
+    width: Optional[int]
+    height: Optional[int]
+
+class Thumbnails(BaseModel):
+    default: Optional[Thumbnail]
+    medium: Optional[Thumbnail]
+    high: Optional[Thumbnail]
+    standard: Optional[Thumbnail]
+    maxres: Optional[Thumbnail]
+
+class Localized(BaseModel):
+    title: str
+    description: str
+
+class Snippet(BaseModel):
+    publishedAt: str
+    channelId: str
+    title: str
+    description: str
+    thumbnails: Thumbnails
+    channelTitle: str
+    categoryId: str
+    liveBroadcastContent: str
+    localized: Localized
+    defaultAudioLanguage: Optional[str]
+
+class ContentRating(BaseModel):
+    acbRating: Optional[str]
+    agcomRating: Optional[str]
+    anatelRating: Optional[str]
+    bbfcRating: Optional[str]
+    bfvcRating: Optional[str]
+    bmukkRating: Optional[str]
+    catvRating: Optional[str]
+    catvfrRating: Optional[str]
+    cbfcRating: Optional[str]
+    cccRating: Optional[str]
+    cceRating: Optional[str]
+    chfilmRating: Optional[str]
+    chvrsRating: Optional[str]
+    cicfRating: Optional[str]
+    cnaRating: Optional[str]
+    cncRating: Optional[str]
+    csaRating: Optional[str]
+    cscfRating: Optional[str]
+    czfilmRating: Optional[str]
+    djctqRating: Optional[str]
+    djctqRatingReasons: Optional[str]
+    ecbmctRating: Optional[str]
+    eefilmRating: Optional[str]
+    egfilmRating: Optional[str]
+    eirinRating: Optional[str]
+    fcbmRating: Optional[str]
+    fcoRating: Optional[str]
+    fmocRating: Optional[str]
+    fpbRating: Optional[str]
+    fpbRatingReasons: Optional[str]
+    fskRating: Optional[str]
+    grfilmRating: Optional[str]
+    icaaRating: Optional[str]
+    ifcoRating: Optional[str]
+    ilfilmRating: Optional[str]
+    incaaRating: Optional[str]
+    kfcbRating: Optional[str]
+    kijkwijzerRating: Optional[str]
+    kmrbRating: Optional[str]
+    lsfRating: Optional[str]
+    mccaaRating: Optional[str]
+    mccypRating: Optional[str]
+    mcstRating: Optional[str]
+    mdaRating: Optional[str]
+    medietilsynetRating: Optional[str]
+    mekuRating: Optional[str]
+    mibacRating: Optional[str]
+    mocRating: Optional[str]
+    moctwRating: Optional[str]
+    mpaaRating: Optional[str]
+    mpaatRating: Optional[str]
+    mtrcbRating: Optional[str]
+    nbcRating: Optional[str]
+    nbcplRating: Optional[str]
+    nfrcRating: Optional[str]
+    nfvcbRating: Optional[str]
+    nkclvRating: Optional[str]
+    oflcRating: Optional[str]
+    pefilmRating: Optional[str]
+    rcnofRating: Optional[str]
+    resorteviolenciaRating: Optional[str]
+    rtcRating: Optional[str]
+    rteRating: Optional[str]
+    russiaRating: Optional[str]
+    skfilmRating: Optional[str]
+    smaisRating: Optional[str]
+    smsaRating: Optional[str]
+    tvpgRating: Optional[str]
+    ytRating: Optional[str]
+
+class ContentDetails(BaseModel):
+    duration: str
+    dimension: str
+    definition: str
+    caption: str
+    licensedContent: bool
+    contentRating: ContentRating
+    projection: str
+
+class Statistics(BaseModel):
+    viewCount: str
+    likeCount: str
+    favoriteCount: str
+    commentCount: str
+
+class YouTubeVideoResponse(BaseModel):
+    kind: str
+    etag: str
+    id: str
+    snippet: Snippet
+    contentDetails: ContentDetails
+    statistics: Statistics

@@ -1,6 +1,7 @@
 from typing import Optional
 from google.cloud import storage
 
+
 class GcsInterface:
     def __init__(
         self,

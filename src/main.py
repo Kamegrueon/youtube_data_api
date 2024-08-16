@@ -4,12 +4,11 @@ import json
 
 # Third Party Library
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
-from pydantic import BaseModel
-from typing import Optional
+from api.routers import invoke
 from loguru import logger
 
 # First Party Library
-from api.youtube_api import YoutubeApiRequest
+from youtube.youtube_api import YoutubeApiRequest
 from env import (
     BUCKET_NAME,
     TOPIC_NAME,
@@ -28,27 +27,12 @@ from utils.extract_most_popular import (
     extract_datetime_from_file_path,
     extract_most_popular,
 )
+from api.schemas.job_request import PubsubRequest
 
 app = FastAPI()
+app.include_router(invoke.router)
 
 # flake8: noqa
-
-
-class PubsubMessage(BaseModel):
-    attributes: Optional[dict] = None
-    data: str
-    messageId: str
-    message_id: str
-    orderingKey: Optional[str] = None
-    publishTime: str
-    publish_time: str
-
-
-class PubsubRequest(BaseModel):
-    message: PubsubMessage
-    subscription: str
-    deliveryAttempt: Optional[int] = None
-
 
 def check_pubsub_message(request) -> str:
     envelope = json.loads(request.json())
@@ -73,48 +57,8 @@ def check_pubsub_message(request) -> str:
     return text
 
 
-@app.post("/invoke/transfer")
-async def invoke_transfer_to_gcs(background_tasks: BackgroundTasks, request: Request) -> None:
-    background_tasks.add_task(process_message)
-    return {"message": "Message received and processing started API Fetch to Save."}
-
-
-async def process_message():
-    sc = SecretManagerInterface()
-    developer_key = sc.get_secret(
-        project_id=PROJECT_ID,
-        secret_id=SECRET_ID,
-        version_id=SECRET_YOUTUBE_API_VERSION
-    )
-
-    youtube = YoutubeApiRequest(
-        youtube_api_service_name=YOUTUBE_API_SERVICE_NAME,
-        youtube_api_version=YOUTUBE_API_VERSION,
-        developer_key=developer_key
-    )
-
-    res = youtube.get_youtube_data()
-    data = json.dumps(res)
-
-    logger.info(BUCKET_NAME)
-
-    gcs = GcsInterface(
-        project_id=PROJECT_ID,
-        bucket_name=BUCKET_NAME,
-    )
-    file_path = f"most_popular/{youtube.date_str}_popular.json"
-    logger.info(file_path)
-    gcs.upload_json(file_path, data)
-
-    pubsub = PubSubInterface(
-        project_id=PROJECT_ID,
-        topic_name=TOPIC_NAME
-    )
-    pubsub.publish(file_path)
-
-
 @app.post("/invoke/load")
-async def invoke_load_to_bq(background_tasks: BackgroundTasks, request: PubsubRequest) -> None:
+async def invoke_load_to_bq(background_tasks: BackgroundTasks, request: PubsubRequest) -> dict[str, str]:
     file_path = check_pubsub_message(request)
     background_tasks.add_task(load_bq, file_path)
     return {"message": "Message received and processing started BQ Load."}
