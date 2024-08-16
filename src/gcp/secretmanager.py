@@ -34,5 +34,3 @@ if __name__ == "__main__":
 
     sm = SecretManagerInterface()
     youtube_api_key = sm.get_secret(project_id, secret_id, version_id)
-
-    print(youtube_api_key)

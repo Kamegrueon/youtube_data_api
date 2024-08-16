@@ -1,6 +1,4 @@
-import json
-
-from fastapi import APIRouter, BackgroundTasks, Request
+from fastapi import APIRouter, BackgroundTasks
 from api.jobs.transfer import transfer
 from api.schemas.job_request import InvokeRequest
 

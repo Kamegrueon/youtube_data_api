@@ -14,7 +14,6 @@ class GcsInterface:
 
     def upload_json(self, gcs_path: str, contents: str) -> None:
         blob = self.bucket.blob(gcs_path)
-        print(blob, type(blob))
         try:
             blob.upload_from_string(contents, content_type="application/json")
         except Exception as e:
