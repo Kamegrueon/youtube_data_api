@@ -1,9 +1,29 @@
-resource "google_cloud_scheduler_job" "invoke-transfer" {
+locals {
+  invoke_params = {
+    transfer = {
+      prefix     = "most_popular"
+      part       = "snippet, contentDetails, statistics"
+      chart      = "mostPopular"
+      maxResults = 50
+    }
+  }
+
+  messages = [
+    {
+      url_path = "/invoke"
+      action   = "transfer"
+      params   = local.invoke_params.transfer
+    }
+  ]
+}
+
+resource "google_cloud_scheduler_job" "invoke_transfer" {
+  for_each    = { for i in local.messages : i.url_path => i }
   paused      = terraform.workspace == "prd" ? false : true
   name        = "${terraform.workspace}-invoke-transfer"
   project     = var.gcp_project_id
   schedule    = "0 12 * * *"
-  description = "suggesting your lunch"
+  description = "Invoke Cloud Run Transfer Job on Schedule"
   time_zone   = "Asia/Tokyo"
 
   retry_config {
@@ -12,12 +32,20 @@ resource "google_cloud_scheduler_job" "invoke-transfer" {
 
   http_target {
     http_method = "POST"
-    uri         = "${var.cloud_run_api_uri}${var.invoke_transfer_url_path}"
+    uri         = "${var.cloud_run_api_uri}${each.value.url_path}"
+
+    body = base64encode(jsonencode({
+      action = each.value.action
+      params = each.value.params
+    }))
+
+    headers = {
+      "Content-Type" = "application/json"
+    }
 
     oidc_token {
       service_account_email = var.service_account_invoker_email
-      audience              = "${var.cloud_run_api_uri}${var.invoke_transfer_url_path}"
+      audience              = "${var.cloud_run_api_uri}${each.value.url_path}"
     }
   }
-
 }
