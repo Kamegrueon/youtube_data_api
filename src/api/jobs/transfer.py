@@ -54,9 +54,7 @@ def transfer_gcs(file_path: str, data: str) -> int:
 def push_to_pubsub(prefix: str, file_path: str):
     pubsub = PubSubInterface(project_id=PROJECT_ID, topic_name=TOPIC_NAME)
 
-    message = json.dumps(
-        {"action": "load", "params": {"prefix": prefix, "path": file_path}}
-    )
+    message = json.dumps({"action": "load", "params": {"prefix": prefix, "path": file_path}})
     pubsub.publish(message)
 
 

@@ -4,8 +4,9 @@ from typing import cast
 
 # Third Party Library
 import pytz
-from api.schemas import YouTubeVideoResponse
 from googleapiclient.discovery import build  # type: ignore
+
+from api.schemas import YouTubeVideoResponse
 
 
 class YoutubeApiRequest:
@@ -15,9 +16,7 @@ class YoutubeApiRequest:
         youtube_api_version: str,
         developer_key: str,
     ) -> None:
-        self.youtube: object = build(
-            youtube_api_service_name, youtube_api_version, developerKey=developer_key
-        )
+        self.youtube: object = build(youtube_api_service_name, youtube_api_version, developerKey=developer_key)
         dt = datetime.now(pytz.timezone("Asia/Tokyo"))
         self.date_str = dt.strftime("%Y%m%d%H%M")
 

@@ -2,13 +2,13 @@
 import json
 from typing import Any
 
+# Third Party Library
+from loguru import logger
+
 # First Party Library
 from api.schemas import LoadParams, ResponseMessage, YouTubeVideoResponse
 from env import BUCKET_NAME, ENVIRONMENT, PROJECT_ID
 from gcp import BqInterface, GcsInterface
-
-# Third Party Library
-from loguru import logger
 from utils import (
     extract_datetime_from_file_path,
     extract_most_popular,
@@ -20,9 +20,7 @@ def load_to_bq(prefix: str, extract_data: list[dict[str, Any]]):
     dataset_name = f"{ENVIRONMENT}_videos"
     table_name = f"{ENVIRONMENT}_{prefix}"
     logger.info("Insert Table Data")
-    bq.insert_table_data(
-        dataset_name=dataset_name, table_name=table_name, data=extract_data
-    )
+    bq.insert_table_data(dataset_name=dataset_name, table_name=table_name, data=extract_data)
 
 
 def fetch_from_gcs(file_path: str) -> tuple[YouTubeVideoResponse, str]:

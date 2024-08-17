@@ -1,6 +1,7 @@
 from typing import Optional
 
-from google.cloud import storage  # type: ignore
+from google.cloud import storage
+
 from utils import gcp_error_handler
 
 

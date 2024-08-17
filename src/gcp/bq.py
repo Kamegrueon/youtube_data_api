@@ -3,9 +3,9 @@
 from typing import Any
 
 from google.cloud import bigquery  # type: ignore
-from utils import gcp_error_handler
 
 from gcp.config.bq_schema import MOST_POPULAR_TABLE_SCHEMA
+from utils import gcp_error_handler
 
 
 class BqInterface:
@@ -13,9 +13,7 @@ class BqInterface:
         self.client = bigquery.Client(project=project_id)
 
     @gcp_error_handler
-    def insert_table_data(
-        self, dataset_name: str, table_name: str, data: list[dict[str, Any]]
-    ) -> None:
+    def insert_table_data(self, dataset_name: str, table_name: str, data: list[dict[str, Any]]) -> None:
         job_config = bigquery.LoadJobConfig(
             schema=MOST_POPULAR_TABLE_SCHEMA,
         )
