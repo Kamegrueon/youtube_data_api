@@ -18,7 +18,7 @@ RUN poetry export --without-hashes --with dev -f requirements.txt > requirements
 RUN pip install -r requirements-dev.txt
 
 # 開発環境の設定
-FROM python:3.11.7-slim as dev
+FROM python:3.11.7-slim AS dev
 ENV PYTHONUNBUFFERED=1
 ENV APP_HOME=/app
 ENV PYTHONPATH=/app/src
