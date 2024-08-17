@@ -1,8 +1,9 @@
 # Standard Library
 import json
+from typing import Any
 
 # First Party Library
-from api.schemas import LoadParams, ResponseMessage
+from api.schemas import LoadParams, ResponseMessage, YouTubeVideoResponse
 from env import BUCKET_NAME, ENVIRONMENT, PROJECT_ID
 from gcp import BqInterface, GcsInterface
 
@@ -14,7 +15,7 @@ from utils import (
 )
 
 
-def load_to_bq(prefix: str, extract_data: list[dict]):
+def load_to_bq(prefix: str, extract_data: list[dict[str, Any]]):
     bq = BqInterface(project_id=PROJECT_ID)
     dataset_name = f"{ENVIRONMENT}_videos"
     table_name = f"{ENVIRONMENT}_{prefix}"
@@ -24,17 +25,17 @@ def load_to_bq(prefix: str, extract_data: list[dict]):
     )
 
 
-def fetch_from_gcs(file_path: str) -> tuple:
+def fetch_from_gcs(file_path: str) -> tuple[YouTubeVideoResponse, str]:
     gcs = GcsInterface(project_id=PROJECT_ID, bucket_name=BUCKET_NAME)
     blob = gcs.get_file(file_path)
 
     if blob is not None:
-        with blob.open(mode="r", encoding="utf-8") as f:
-            data = json.load(f)
+        with blob.open(mode="r", encoding="utf-8") as f:  # type: ignore
+            data: YouTubeVideoResponse = json.load(f)
             created_at = extract_datetime_from_file_path(file_path)
         return data, created_at
     else:
-        return None, None
+        raise
 
 
 async def load(params: LoadParams) -> ResponseMessage:

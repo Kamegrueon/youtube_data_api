@@ -1,3 +1,5 @@
+from typing import Any
+
 from api.schemas import YouTubeVideoResponse
 
 
@@ -7,7 +9,9 @@ def extract_published(published_at: str) -> str:
     return f"{date} {time}:00"
 
 
-def extract_most_popular(data: YouTubeVideoResponse, created_at: str) -> list[dict]:
+def extract_most_popular(
+    data: YouTubeVideoResponse, created_at: str
+) -> list[dict[str, Any]]:
     videos_dict = [
         {
             "VIDEO_ID": item["id"],

@@ -1,4 +1,4 @@
-from google.cloud import bigquery
+from google.cloud import bigquery  # type: ignore
 
 MOST_POPULAR_TABLE_SCHEMA = [
     bigquery.SchemaField("VIDEO_ID", "STRING", mode="REQUIRED", description="動画ID"),

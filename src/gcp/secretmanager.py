@@ -1,4 +1,4 @@
-from google.cloud import secretmanager
+from google.cloud import secretmanager  # type: ignore
 from utils import gcp_error_handler
 
 
@@ -10,7 +10,7 @@ class SecretManagerInterface:
     def get_secret(self, project_id: str, secret_id: str, version_id: str) -> str:
         path = self.client.secret_version_path(project_id, secret_id, version_id)
 
-        response = self.client.access_secret_version(request={"name": path})
+        response = self.client.access_secret_version(request={"name": path})  # type: ignore
 
         secret_value = response.payload.data.decode("UTF-8")
 

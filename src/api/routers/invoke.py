@@ -16,7 +16,7 @@ router = APIRouter()
 async def invoke(
     background_tasks: BackgroundTasks, request: InvokeRequest | PubsubRequest
 ) -> dict[str, str]:
-    data: InvokeRequest
+    data: InvokeRequest | None = None
     if isinstance(request, PubsubRequest):
         decode_value = decode_pubsub_message(request)
         try:
@@ -27,20 +27,21 @@ async def invoke(
             logger.error(f"Value Error{e}")
         except KeyError as e:
             logger.error(f"Key Error{e}")
-    elif isinstance(request, InvokeRequest):
+    else:
         data = request
 
     logger.info(data)
 
-    action, params = data.action, data.params
+    if data is not None:
+        action, params = data.action, data.params
 
-    if action == "transfer" and isinstance(params, TransferParams):
-        background_tasks.add_task(transfer, params)
-    elif action == "load" and isinstance(params, LoadParams):
-        background_tasks.add_task(load, params)
-    else:
-        raise ValueError(
-            f"Invalid combination of action '{action}' and params type '{type(params).__name__}'"
-        )
+        if action == "transfer" and isinstance(params, TransferParams):
+            background_tasks.add_task(transfer, params)
+        elif action == "load" and isinstance(params, LoadParams):
+            background_tasks.add_task(load, params)
+        else:
+            raise ValueError(
+                f"Invalid combination of action '{action}' and params type '{type(params).__name__}'"
+            )
 
     return {"message": "Message received and processing '{action}'."}
