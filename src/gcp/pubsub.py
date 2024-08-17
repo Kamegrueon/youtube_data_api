@@ -16,13 +16,12 @@ class PubSubInterface:
         self.topic_path = self.publisher.topic_path(project_id, topic_name)
 
     @gcp_error_handler
-    def publish(self, data: str):
+    def publish(self, data: str) -> None:
         encoded_data = data.encode("utf-8")
-        self.publisher.publish(self.topic_path, data=encoded_data)  # type: ignore
         future = self.publisher.publish(self.topic_path, data=encoded_data)  # type: ignore
         future.add_done_callback(self._publish_callback)  # type: ignore
 
-    def _publish_callback(self, future):  # type: ignore
+    def _publish_callback(self, future) -> None:  # type: ignore
         try:
             message_id = future.result()  # type: ignore
             logger.info(f"Message published with ID: {message_id}")
