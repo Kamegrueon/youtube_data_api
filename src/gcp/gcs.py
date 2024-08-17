@@ -1,5 +1,7 @@
 from typing import Optional
+
 from google.cloud import storage
+from utils import gcp_error_handler
 
 
 class GcsInterface:
@@ -12,15 +14,12 @@ class GcsInterface:
         self.bucket_name = bucket_name
         self.bucket = self.client.bucket(bucket_name)
 
+    @gcp_error_handler
     def upload_json(self, gcs_path: str, contents: str) -> None:
         blob = self.bucket.blob(gcs_path)
-        try:
-            blob.upload_from_string(contents, content_type="application/json")
-        except Exception as e:
-            raise Exception(e)
+        blob.upload_from_string(contents, content_type="application/json")
 
-
+    @gcp_error_handler
     def get_file(self, blob_path: str) -> Optional[storage.Blob]:
-        bucket = self.client.bucket(self.bucket_name)
-        blob = bucket.get_blob(blob_path)
+        blob = self.bucket.get_blob(blob_path)
         return blob

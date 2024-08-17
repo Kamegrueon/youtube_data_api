@@ -1,28 +1,18 @@
-from typing import cast
 from google.cloud import secretmanager
+from utils import gcp_error_handler
 
 
 class SecretManagerInterface:
     def __init__(self) -> None:
         self.client = secretmanager.SecretManagerServiceClient()
 
-    def get_secret(
-        self,
-        project_id: str,
-        secret_id: str,
-        version_id: str
-    ) -> str:
-        path = self.client.secret_version_path(
-            project_id,
-            secret_id,
-            version_id
-        )
+    @gcp_error_handler
+    def get_secret(self, project_id: str, secret_id: str, version_id: str) -> str:
+        path = self.client.secret_version_path(project_id, secret_id, version_id)
 
-        response = self.client.access_secret_version(
-            request={"name": path}
-        )
+        response = self.client.access_secret_version(request={"name": path})
 
-        secret_value = response.payload.data.decode('UTF-8')
+        secret_value = response.payload.data.decode("UTF-8")
 
         return secret_value
 

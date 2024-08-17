@@ -19,7 +19,7 @@ variable "pubsub_topic_dead_letter_id" {}
 
 variable "main_subscription_url_path" {
   type    = string
-  default = "/invoke/load"
+  default = "/invoke"
 }
 
 variable "invoke_transfer_url_path" {
