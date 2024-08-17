@@ -8,6 +8,7 @@ WORKDIR $APP_HOME
 RUN pip install --upgrade pip && pip install poetry
 # poetry-plugin-exportのインストール
 RUN poetry self add poetry-plugin-export
+RUN poetry config virtualenvs.create false
 
 # poetryの依存関係をコピー
 COPY pyproject.toml poetry.lock ./
@@ -20,6 +21,7 @@ RUN pip install -r requirements.txt
 FROM python:3.11.7-slim AS prod
 ENV PYTHONUNBUFFERED=1
 ENV APP_HOME=/app
+ENV PYTHONPATH=/app/src
 WORKDIR $APP_HOME
 
 # 依存関係のコピー
@@ -27,7 +29,7 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # アプリケーションのコードをコピー
-COPY ./ ./
+COPY ./src ./
 
 ENV PORT 8080
 

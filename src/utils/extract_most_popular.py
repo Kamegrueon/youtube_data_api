@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
+from typing import Any
 
-def extract_datetime_from_file_path(file_path: str) -> str:
-    split_str = file_path.split("/")[1]
-    date = f"{split_str[0:4]}-{split_str[4:6]}-{split_str[6:8]}"
-    time = f"{split_str[8:10]}:{split_str[10:12]}:00"
-    return f"{date} {time}"
+from api.schemas import YouTubeVideoResponse
 
 
 def extract_published(published_at: str) -> str:
@@ -13,7 +9,9 @@ def extract_published(published_at: str) -> str:
     return f"{date} {time}:00"
 
 
-def extract_most_popular(data: dict, created_at: str) -> list[dict]:
+def extract_most_popular(
+    data: YouTubeVideoResponse, created_at: str
+) -> list[dict[str, Any]]:
     videos_dict = [
         {
             "VIDEO_ID": item["id"],
@@ -31,7 +29,8 @@ def extract_most_popular(data: dict, created_at: str) -> list[dict]:
             "DISLIKE_COUNT": int(item["statistics"].get("dislikeCount", 0)),
             "FAVORITE_COUNT": int(item["statistics"].get("favoriteCount", 0)),
             "COMMENT_COUNT": int(item["statistics"].get("commentCount", 0)),
-        } for item in data["items"]
+        }
+        for item in data["items"]
     ]
 
     return videos_dict

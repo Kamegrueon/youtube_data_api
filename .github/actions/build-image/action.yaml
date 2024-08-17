@@ -15,7 +15,7 @@ inputs:
       description: terraform validate output content
       required: true
     docker-file-path:
-      description: d
+      description: docker file path
       required: true
 
 runs:
@@ -32,7 +32,7 @@ runs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./src
+          context: .
           file: ${{ inputs.docker-file-path }}
           push: true
           tags: ${{ inputs.region }}-docker.pkg.dev/${{ inputs.project_id }}/${{ inputs.environment }}-${{ inputs.repository }}/${{ inputs.environment }}-api-image:${{ github.sha }}
