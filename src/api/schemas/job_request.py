@@ -1,7 +1,8 @@
 from enum import StrEnum, auto
-from typing import Any, Optional, TypedDict
+from typing import Any, Optional
 
 from pydantic import BaseModel, model_validator
+from typing_extensions import TypedDict
 
 
 class VideoFilterParams(BaseModel):
