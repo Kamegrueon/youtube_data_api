@@ -4,14 +4,14 @@ from api.schemas.job_request import (
     PubsubData,
     PubsubRequest,
     ResponseMessage,
-    TransferParams,
+    VideosParams,
 )
 from api.schemas.youtube_response import YouTubeVideoResponse
 
 __all__ = [
     "YouTubeVideoResponse",
     "InvokeRequest",
-    "TransferParams",
+    "VideosParams",
     "LoadParams",
     "PubsubRequest",
     "PubsubData",
