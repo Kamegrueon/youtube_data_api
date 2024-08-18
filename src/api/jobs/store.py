@@ -1,6 +1,7 @@
-import json
+from datetime import datetime
 
-from api.schemas import ResponseMessage, VideosParams
+from api.schemas import InvokeRequest, PrefixUnit, ResponseMessage, VideosParams
+from api.schemas.job_request import ActionUnit, VideoFilterParams
 from env import (
     PROJECT_ID,
     SECRET_ID,
@@ -9,8 +10,7 @@ from env import (
     YOUTUBE_API_SERVICE_NAME,
     YOUTUBE_API_VERSION,
 )
-from gcp.pubsub import PubSubInterface
-from gcp.secretmanager import SecretManagerInterface
+from gcp import FirestoreInterface, PubSubInterface, SecretManagerInterface
 from youtube.youtube_api import YoutubeApiRequest
 
 
@@ -24,7 +24,7 @@ def fetch_secret_value() -> str:
     return developer_key
 
 
-def fetch_youtube_data(developer_key: str, params: VideosParams) -> tuple[str, str]:
+def fetch_most_popular_video_ids(developer_key: str, params: VideosParams) -> tuple[list[str], datetime]:
     part, chart, maxResults = (params.part, params.filter.chart, params.maxResults)
     youtube = YoutubeApiRequest(
         youtube_api_service_name=YOUTUBE_API_SERVICE_NAME,
@@ -34,32 +34,39 @@ def fetch_youtube_data(developer_key: str, params: VideosParams) -> tuple[str, s
     if not chart:
         raise ValueError("chart is empty")
     res = youtube.get_most_popular(part, chart, maxResults)
-    data = json.dumps(res)
-    return data, youtube.date_str
+    video_ids = [item["id"] for item in res["items"]]
+    processed_at = youtube.processed_at
+    return video_ids, processed_at
 
 
-def create_firestore(file_path: str, data: str) -> int:
-    return 200
+def get_video_ids_by_time_window(prefix: PrefixUnit, processed_at: datetime, video_ids: list[str]) -> list[str]:
+    client = FirestoreInterface(project_id=PROJECT_ID)
+    if prefix == "most_popular":
+        collection_name = "(default)"  # 本当はprefix名をcollections名にしたかったが、無料枠が利用できなくなってしまうため泣く泣く断念。
+    else:
+        raise ValueError("Invalid prefix")
+
+    client.update_video_ids(collection_name=collection_name, processed_at=processed_at, video_ids=video_ids)
+    video_ids = client.get_process_video_ids(collection_name=collection_name, days_ago=7, processed_at=processed_at)
+    return video_ids
 
 
-def push_to_pubsub(prefix: str, file_path: str) -> None:
+def push_to_pubsub(prefix: PrefixUnit, process_video_ids: list[str]) -> None:
     pubsub = PubSubInterface(project_id=PROJECT_ID, topic_name=TOPIC_NAME)
+    filter_params = VideoFilterParams(ids=process_video_ids)
+    video_params = VideosParams(
+        prefix=prefix, part=["snippet", "contentDetails", "statistics"], filter=filter_params, maxResults=50
+    )
+    request = InvokeRequest(action=ActionUnit.transfer, params=video_params)
 
-    message = json.dumps({"action": "transfer", "params": {"prefix": prefix, "": file_path}})
-    pubsub.publish(message)
+    pubsub.publish(request.model_dump_json())
 
 
 async def store(params: VideosParams) -> ResponseMessage:
     prefix = params.prefix
     developer_key = fetch_secret_value()
-    data, request_date = fetch_youtube_data(developer_key, params)
+    get_video_ids, processed_at = fetch_most_popular_video_ids(developer_key, params)
+    process_video_ids = get_video_ids_by_time_window(prefix, processed_at, get_video_ids)
+    push_to_pubsub(prefix, process_video_ids)
 
-    file_path = f"{prefix}/{request_date}_{prefix}.json"
-    status = create_firestore(file_path, data)
-    # status = transfer_gcs(file_path, data)
-
-    if status == 200:
-        push_to_pubsub(prefix, file_path)
-        return {"message": "Transfer process completed successfully."}
-    else:
-        return {"message": "Transfer process failed."}
+    return {"message": "Store process completed successfully."}

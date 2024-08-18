@@ -38,7 +38,8 @@ def fetch_youtube_data(developer_key: str, params: VideosParams) -> tuple[str, s
         raise ValueError("ids is empty")
     res = youtube.get_video_details(part, ids, maxResults)
     data = json.dumps(res)
-    return data, youtube.date_str
+    processed_at = youtube.processed_at.strftime("%Y%m%d%H%M")
+    return data, processed_at
 
 
 def transfer_gcs(file_path: str, data: str) -> int:
@@ -64,9 +65,9 @@ def push_to_pubsub(prefix: str, file_path: str) -> None:
 async def transfer(params: VideosParams) -> ResponseMessage:
     prefix = params.prefix
     developer_key = fetch_secret_value()
-    data, request_date = fetch_youtube_data(developer_key, params)
+    data, processed_at = fetch_youtube_data(developer_key, params)
 
-    file_path = f"{prefix}/{request_date}_{prefix}.json"
+    file_path = f"{prefix}/{processed_at}_{prefix}.json"
     status = transfer_gcs(file_path, data)
 
     if status == 200:

@@ -4,6 +4,7 @@ from typing import cast
 
 # Third Party Library
 import pytz
+from pytz.tzinfo import BaseTzInfo
 from googleapiclient.discovery import build  # type: ignore
 
 from api.schemas import YouTubeVideoResponse
@@ -17,8 +18,9 @@ class YoutubeApiRequest:
         developer_key: str,
     ) -> None:
         self.youtube: object = build(youtube_api_service_name, youtube_api_version, developerKey=developer_key)
-        dt = datetime.now(pytz.timezone("Asia/Tokyo"))
-        self.date_str = dt.strftime("%Y%m%d%H%M")
+        jst: BaseTzInfo = pytz.timezone("Asia/Tokyo")
+        self.processed_at: datetime = datetime.now(jst)
+        # self.processed_date = dt.strftime("%Y%m%d%H%M")
 
     def get_most_popular(self, part: list[str], chart: str, maxResults: int) -> YouTubeVideoResponse:
         request = self.youtube.videos().list(  # type: ignore

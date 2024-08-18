@@ -19,15 +19,19 @@ class VideoFilterParams(BaseModel):
         return values
 
 
+class PrefixUnit(StrEnum):
+    most_popular = auto()
+
+
 class VideosParams(BaseModel):
-    prefix: str
+    prefix: PrefixUnit
     part: list[str]
     filter: VideoFilterParams
     maxResults: int
 
 
 class LoadParams(BaseModel):
-    prefix: str
+    prefix: PrefixUnit
     path: str
 
 

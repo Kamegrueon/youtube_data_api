@@ -5,6 +5,7 @@ from api.schemas.job_request import (
     PubsubRequest,
     ResponseMessage,
     VideosParams,
+    PrefixUnit,
 )
 from api.schemas.youtube_response import YouTubeVideoResponse
 
@@ -16,4 +17,5 @@ __all__ = [
     "PubsubRequest",
     "PubsubData",
     "ResponseMessage",
+    "PrefixUnit",
 ]
