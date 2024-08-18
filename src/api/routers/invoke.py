@@ -10,6 +10,7 @@ router = APIRouter()
 
 @router.post("/invoke")
 async def invoke(background_tasks: BackgroundTasks, request: InvokeRequest | PubsubRequest) -> ResponseMessage:
+    logger.info(request)
     data: InvokeRequest | None = None
     if isinstance(request, PubsubRequest):
         decode_value = decode_pubsub_message(request)

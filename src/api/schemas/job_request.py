@@ -7,7 +7,7 @@ from typing_extensions import TypedDict
 
 class VideoFilterParams(BaseModel):
     chart: Optional[str] = None
-    ids: Optional[list[str]] = None
+    ids: Optional[str] = None
 
     @model_validator(mode="before")
     def validate_chart_or_id(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -25,7 +25,7 @@ class PrefixUnit(StrEnum):
 
 class VideosParams(BaseModel):
     prefix: PrefixUnit
-    part: list[str]
+    part: str
     filter: VideoFilterParams
     maxResults: int
 
