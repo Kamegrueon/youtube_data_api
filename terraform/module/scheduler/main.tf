@@ -1,8 +1,10 @@
 locals {
   invoke_params = {
-    transfer = {
-      prefix     = "most_popular"
-      part       = "snippet, contentDetails, statistics"
+    store = {
+      prefix = "most_popular"
+      filter = {
+        part = "snippet, contentDetails, statistics"
+      }
       chart      = "mostPopular"
       maxResults = 50
     }
@@ -11,8 +13,8 @@ locals {
   messages = [
     {
       url_path = "/invoke"
-      action   = "transfer"
-      params   = local.invoke_params.transfer
+      action   = "store"
+      params   = local.invoke_params.store
     }
   ]
 }
