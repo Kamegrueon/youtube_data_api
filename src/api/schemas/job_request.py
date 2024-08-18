@@ -11,7 +11,7 @@ class VideoFilterParams(BaseModel):
 
     @model_validator(mode="before")
     def validate_chart_or_id(cls, values: dict[str, Any]) -> dict[str, Any]:
-        chart, ids = values.get("chart"), values.get("id")
+        chart, ids = values.get("chart"), values.get("ids")
         if not chart and not ids:
             raise ValueError('Either "chart" or "id" must be provided.')
         if chart and ids:
