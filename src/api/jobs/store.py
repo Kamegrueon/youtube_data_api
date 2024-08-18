@@ -3,6 +3,7 @@ from datetime import datetime
 from api.schemas import InvokeRequest, PrefixUnit, ResponseMessage, VideosParams
 from api.schemas.job_request import ActionUnit, VideoFilterParams
 from env import (
+    ENVIRONMENT,
     PROJECT_ID,
     SECRET_ID,
     SECRET_YOUTUBE_API_VERSION,
@@ -41,10 +42,11 @@ def fetch_most_popular_video_ids(developer_key: str, params: VideosParams) -> tu
 
 def get_video_ids_by_time_window(prefix: PrefixUnit, processed_at: datetime, video_ids: list[str]) -> list[str]:
     client = FirestoreInterface(project_id=PROJECT_ID)
-    if prefix == "most_popular":
+    if prefix == "most_popular" and ENVIRONMENT == "prd":
+        # f"{ENVIRONMENT}_{prefix}"
         collection_name = "(default)"  # 本当はprefix名をcollections名にしたかったが、無料枠が利用できなくなってしまうため泣く泣く断念。
     else:
-        raise ValueError("Invalid prefix")
+        collection_name = f"{ENVIRONMENT}_{prefix}"
 
     client.update_video_ids(collection_name=collection_name, processed_at=processed_at, video_ids=video_ids)
     video_ids = client.get_process_video_ids(collection_name=collection_name, days_ago=7, processed_at=processed_at)
