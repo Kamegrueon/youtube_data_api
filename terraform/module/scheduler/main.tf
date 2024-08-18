@@ -2,10 +2,10 @@ locals {
   invoke_params = {
     store = {
       prefix = "most_popular"
+      part   = "snippet, contentDetails, statistics"
       filter = {
-        part = "snippet, contentDetails, statistics"
+        chart = "mostPopular"
       }
-      chart      = "mostPopular"
       maxResults = 50
     }
   }
