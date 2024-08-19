@@ -41,11 +41,12 @@ def fetch_most_popular_video_ids(developer_key: str, params: VideosParams) -> tu
 
 
 def get_video_ids_by_time_window(prefix: PrefixUnit, processed_at: datetime, video_ids: list[str]) -> list[str]:
-    client = FirestoreInterface(project_id=PROJECT_ID, database="(default)")
+    database_name = "(default)"  # 無料枠利用のため
+    client = FirestoreInterface(project_id=PROJECT_ID, database=database_name)
     collection_name = f"{ENVIRONMENT}_{prefix}"
 
     client.update_video_ids(collection_name=collection_name, processed_at=processed_at, video_ids=video_ids)
-    video_ids = client.get_process_video_ids(collection_name=collection_name, days_ago=7, processed_at=processed_at)
+    video_ids = client.get_process_video_ids(collection_name=collection_name, processed_at=processed_at)
     return video_ids
 
 
