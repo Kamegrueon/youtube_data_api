@@ -4,8 +4,8 @@ from google.cloud import firestore
 
 
 class FirestoreInterface:
-    def __init__(self, project_id: str) -> None:
-        self.client = firestore.Client(project=project_id)
+    def __init__(self, project_id: str, database: str) -> None:
+        self.client = firestore.Client(project=project_id, database=database)
 
     def _get_existing_video_ids(self, collection_name: str) -> None:
         self.existing_video_ids: set[str] = set()
