@@ -58,7 +58,7 @@ runs:
           GITHUB_WORKFLOW: ${{ inputs.GITHUB_WORKFLOW }}
 
       - name: Comment Terraform Plan
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
         with:
           github-token: ${{ inputs.GITHUB_TOKEN }}
