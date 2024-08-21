@@ -1,20 +1,16 @@
 from fastapi import APIRouter, BackgroundTasks
 from loguru import logger
 
-from api.jobs import load, transfer
-from api.schemas.job_request import (
-    InvokeRequest,
-    LoadParams,
-    PubsubRequest,
-    TransferParams,
-)
+from api.jobs import load, store, transfer
+from api.schemas.job_request import InvokeRequest, LoadParams, PubsubRequest, ResponseMessage, VideosParams
 from utils import decode_pubsub_message
 
 router = APIRouter()
 
 
 @router.post("/invoke")
-async def invoke(background_tasks: BackgroundTasks, request: InvokeRequest | PubsubRequest) -> dict[str, str]:
+async def invoke(background_tasks: BackgroundTasks, request: InvokeRequest | PubsubRequest) -> ResponseMessage:
+    logger.info(request)
     data: InvokeRequest | None = None
     if isinstance(request, PubsubRequest):
         decode_value = decode_pubsub_message(request)
@@ -32,7 +28,9 @@ async def invoke(background_tasks: BackgroundTasks, request: InvokeRequest | Pub
     if data is not None:
         action, params = data.action, data.params
 
-        if action == "transfer" and isinstance(params, TransferParams):
+        if action == "store" and isinstance(params, VideosParams):
+            background_tasks.add_task(store, params)
+        elif action == "transfer" and isinstance(params, VideosParams):
             background_tasks.add_task(transfer, params)
         elif action == "load" and isinstance(params, LoadParams):
             background_tasks.add_task(load, params)

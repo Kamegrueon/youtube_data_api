@@ -30,8 +30,8 @@ def fetch_from_gcs(file_path: str) -> tuple[YouTubeVideoResponse, str]:
     if blob is not None:
         with blob.open(mode="r", encoding="utf-8") as f:  # type: ignore
             data: YouTubeVideoResponse = json.load(f)
-            created_at = extract_datetime_from_file_path(file_path)
-        return data, created_at
+            processed_at = extract_datetime_from_file_path(file_path)
+        return data, processed_at
     else:
         raise
 

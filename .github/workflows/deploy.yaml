@@ -262,7 +262,7 @@ jobs:
         run: terraform apply -auto-approve -var "docker_tag=${{ steps.get-latest-tag.outputs.tag }}" -var "run_context=remote"
 
       # stg ブランチに push した場合にだけ dev環境のdestroyが実行される
-      - name: Terraform Destroy Stg
+      - name: Terraform Destroy Dev
         if: github.ref == 'refs/heads/stg' && github.event_name == 'push'
         run: |
           terraform workspace select dev || terraform workspace new dev

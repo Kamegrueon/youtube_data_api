@@ -1,6 +1,6 @@
 import json
 
-from api.schemas import ResponseMessage, TransferParams
+from api.schemas import ResponseMessage, VideosParams
 from env import (
     BUCKET_NAME,
     PROJECT_ID,
@@ -26,16 +26,20 @@ def fetch_secret_value() -> str:
     return developer_key
 
 
-def fetch_youtube_data(developer_key: str, params: TransferParams):
-    part, chart, maxResults = (params.part, params.chart, params.maxResults)
+def fetch_youtube_data(developer_key: str, params: VideosParams) -> tuple[str, str]:
+    part, ids, maxResults = (params.part, params.filter.ids, params.maxResults)
     youtube = YoutubeApiRequest(
         youtube_api_service_name=YOUTUBE_API_SERVICE_NAME,
         youtube_api_version=YOUTUBE_API_VERSION,
         developer_key=developer_key,
     )
-    res = youtube.get_data(part, chart, maxResults)
+
+    if not ids:
+        raise ValueError("ids is empty")
+    res = youtube.get_video_details(part, ids, maxResults)
     data = json.dumps(res)
-    return data, youtube.date_str
+    processed_at = youtube.processed_at.strftime("%Y%m%d%H%M")
+    return data, processed_at
 
 
 def transfer_gcs(file_path: str, data: str) -> int:
@@ -51,19 +55,19 @@ def transfer_gcs(file_path: str, data: str) -> int:
         raise RuntimeError(f"Failed to upload JSON to GCS at {file_path}: {e}")
 
 
-def push_to_pubsub(prefix: str, file_path: str):
+def push_to_pubsub(prefix: str, file_path: str) -> None:
     pubsub = PubSubInterface(project_id=PROJECT_ID, topic_name=TOPIC_NAME)
 
     message = json.dumps({"action": "load", "params": {"prefix": prefix, "path": file_path}})
     pubsub.publish(message)
 
 
-async def transfer(params: TransferParams) -> ResponseMessage:
+async def transfer(params: VideosParams) -> ResponseMessage:
     prefix = params.prefix
     developer_key = fetch_secret_value()
-    data, request_date = fetch_youtube_data(developer_key, params)
+    data, processed_at = fetch_youtube_data(developer_key, params)
 
-    file_path = f"{prefix}/{request_date}_{prefix}.json"
+    file_path = f"{prefix}/{processed_at}_{prefix}.json"
     status = transfer_gcs(file_path, data)
 
     if status == 200:

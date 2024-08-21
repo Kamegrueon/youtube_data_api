@@ -1,27 +1,53 @@
-from typing import Optional, TypedDict
+from enum import StrEnum, auto
+from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
+from typing_extensions import TypedDict
 
 
-class TransferParams(BaseModel):
-    prefix: str
+class VideoFilterParams(BaseModel):
+    chart: Optional[str] = None
+    ids: Optional[str] = None
+
+    @model_validator(mode="before")
+    def validate_chart_or_id(cls, values: dict[str, Any]) -> dict[str, Any]:
+        chart, ids = values.get("chart"), values.get("ids")
+        if not chart and not ids:
+            raise ValueError('Either "chart" or "id" must be provided.')
+        if chart and ids:
+            raise ValueError('Only one of "chart" or "id" can be provided.')
+        return values
+
+
+class PrefixUnit(StrEnum):
+    most_popular = auto()
+
+
+class VideosParams(BaseModel):
+    prefix: PrefixUnit
     part: str
-    chart: str
+    filter: VideoFilterParams
     maxResults: int
 
 
 class LoadParams(BaseModel):
-    prefix: str
+    prefix: PrefixUnit
     path: str
 
 
+class ActionUnit(StrEnum):
+    store = auto()
+    transfer = auto()
+    load = auto()
+
+
 class InvokeRequest(BaseModel):
-    action: str
-    params: TransferParams | LoadParams
+    action: ActionUnit
+    params: VideosParams | LoadParams
 
 
 class PubsubData(TypedDict):
-    action: str
+    action: ActionUnit
     params: LoadParams
 
 

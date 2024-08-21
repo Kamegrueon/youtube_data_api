@@ -59,14 +59,15 @@ class YouTubeVideoItems(TypedDict):
     kind: str
     etag: str
     id: str
-    snippet: Snippet
-    contentDetails: ContentDetails
-    statistics: Statistics
+    snippet: Optional[Snippet]
+    contentDetails: Optional[ContentDetails]
+    statistics: Optional[Statistics]
 
 
 class YouTubeVideoResponse(TypedDict):
     kind: str
     etag: str
     items: list[YouTubeVideoItems]
-    nextPageToken: str
+    nextPageToken: Optional[str]
+    prevPageToken: Optional[str]
     pageInfo: pageInfo
