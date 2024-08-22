@@ -24,11 +24,11 @@ class FirestoreInterface:
         for video_id in video_ids:
             if video_id not in self.existing_video_ids:
                 doc_ref = collection_ref.document(f"video_{video_id}")
-                doc_ref.set({"id": video_id, "processed_at": processed_at, "end_date": end_date.isoformat()})  # type: ignore
+                doc_ref.set({"id": video_id, "processed_at": processed_at, "end_date": end_date})  # type: ignore
 
     def get_process_video_ids(self, collection_name: str, processed_at: datetime) -> list[str]:
         collection_ref = self._get_collection(collection_name)
-        query = collection_ref.where("end_date", ">=", processed_at.isoformat())  # type: ignore
+        query = collection_ref.where("end_date", ">=", processed_at)  # type: ignore
         docs = query.stream()
         video_ids: list[str] = [doc.to_dict()["id"] for doc in docs]  # type: ignore
         return video_ids
