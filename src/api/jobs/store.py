@@ -51,15 +51,16 @@ def get_video_ids_by_time_window(prefix: PrefixUnit, processed_at: datetime, vid
 
 
 def push_to_pubsub(prefix: PrefixUnit, process_video_ids: list[str]) -> None:
-    ids = ",".join(process_video_ids)
-    part = ",".join(["snippet", "contentDetails", "statistics"])
-
     pubsub = PubSubInterface(project_id=PROJECT_ID, topic_name=TOPIC_NAME)
-    filter_params = VideoFilterParams(ids=ids)
-    video_params = VideosParams(prefix=prefix, part=part, filter=filter_params, maxResults=50)
-    request = InvokeRequest(action=ActionUnit.transfer, params=video_params)
+    part = ",".join(["snippet", "contentDetails", "statistics"])
+    for i in range(0, len(process_video_ids), 50):
+        target_ids = process_video_ids[i : i + 50]
+        ids = ",".join(target_ids)
+        filter_params = VideoFilterParams(ids=ids)
+        video_params = VideosParams(prefix=prefix, part=part, filter=filter_params, maxResults=50)
+        request = InvokeRequest(action=ActionUnit.transfer, params=video_params)
 
-    pubsub.publish(request.model_dump_json())
+        pubsub.publish(request.model_dump_json())
 
 
 async def store(params: VideosParams) -> ResponseMessage:
