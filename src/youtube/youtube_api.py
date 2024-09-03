@@ -17,10 +17,11 @@ class YoutubeApiRequest:
         youtube_api_version: str,
         developer_key: str,
     ) -> None:
-        self.youtube: object = build(youtube_api_service_name, youtube_api_version, developerKey=developer_key)
+        self.youtube: object = build(
+            serviceName=youtube_api_service_name, version=youtube_api_version, developerKey=developer_key
+        )
         jst: BaseTzInfo = pytz.timezone("Asia/Tokyo")
         self.processed_at: datetime = datetime.now(jst)
-        # self.processed_date = dt.strftime("%Y%m%d%H%M")
 
     def get_most_popular(self, part: str, chart: str, maxResults: int) -> YouTubeVideoResponse:
         request = self.youtube.videos().list(  # type: ignore
