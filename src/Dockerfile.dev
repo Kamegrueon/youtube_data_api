@@ -5,17 +5,17 @@ ENV APP_HOME=/app
 WORKDIR $APP_HOME
 
 # pipとpoetryのインストール
-RUN pip install --upgrade pip && pip install poetry
-# poetry-plugin-exportのインストール
-RUN poetry self add poetry-plugin-export
-RUN poetry config virtualenvs.create false
+RUN pip install --upgrade pip && \
+    pip install poetry && \
+    poetry self add poetry-plugin-export && \
+    poetry config virtualenvs.create false
 
 # poetryの依存関係をコピー
 COPY pyproject.toml poetry.lock ./
 
 # 依存関係のインストール
-RUN poetry export --without-hashes --with dev -f requirements.txt > requirements-dev.txt
-RUN pip install -r requirements-dev.txt
+RUN poetry export --without-hashes --with dev -f requirements.txt > requirements-dev.txt && \
+    pip install -r requirements-dev.txt
 
 # 開発環境の設定
 FROM python:3.11.7-slim AS dev
