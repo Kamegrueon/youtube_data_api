@@ -48,6 +48,10 @@ jobs:
       src: ${{ steps.src-filter.outputs.src }}
       env_string: ${{ steps.set-environment.outputs.ENV_STRING }}
       gcloud_token: ${{ steps.authenticate-to-gcloud.outputs.gcloud_token }}
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
