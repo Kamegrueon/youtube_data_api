@@ -29,4 +29,9 @@ runs:
     - name: Get Google Cloud Token
       id: get-token
       shell: bash
-      run: echo "gcloud_token=$(gcloud auth print-identity-token)" >> $GITHUB_OUTPUT
+      run: |
+        set -e
+        echo "Attempting to retrieve identity token..."
+        TOKEN=$(gcloud auth print-identity-token) || { echo "Failed to retrieve token"; exit 1; }
+        echo "gcloud_token=$TOKEN" >> $GITHUB_OUTPUT
+        echo "Token successfully retrieved: $TOKEN"
