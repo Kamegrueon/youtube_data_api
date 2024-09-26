@@ -22,8 +22,6 @@ runs:
     - id: 'setup-to-google-cloud'
       name: 'Setup Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v2'
-      with:
-        version: '>= 363.0.0'
 
     # トークンを取得して出力
     - name: Get Google Cloud Token
