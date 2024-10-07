@@ -26,7 +26,7 @@ runs:
     - name: Check authentication
       shell: bash
       run: |
-        gcloud auth list
+        gcloud auth print-identity-token
 
     # トークンを取得して出力
     - name: Get Google Cloud Token
