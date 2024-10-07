@@ -23,6 +23,11 @@ runs:
       name: 'Setup Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v2'
 
+    - name: Check authentication
+      shell: bash
+      run: |
+        gcloud auth list
+
     # トークンを取得して出力
     - name: Get Google Cloud Token
       id: get-token
