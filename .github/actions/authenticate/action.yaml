@@ -8,33 +8,24 @@ inputs:
   service_account:
     description: "service account email address"
     required: true
+outputs:
+  gcloud_token:
+    description: "The GCP access token"
+    value: ${{ steps.auth.outputs.access_token }}
+
 
 runs:
   using: "composite"
   steps:
     - name: Authenticate to Google Cloud
+      id: auth
       uses: google-github-actions/auth@v2
       with:
         workload_identity_provider: ${{ inputs.workload_identity_provider }}
         service_account: ${{ inputs.service_account }}
         project_id: ${{ env.PROJECT_ID }}
+        output_token: true
 
     - id: 'setup-to-google-cloud'
       name: 'Setup Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v2'
-
-    - name: Check authentication
-      shell: bash
-      run: |
-        gcloud auth print-identity-token
-
-    # トークンを取得して出力
-    - name: Get Google Cloud Token
-      id: get-token
-      shell: bash
-      run: |
-        set -e
-        echo "Attempting to retrieve identity token..."
-        TOKEN=$(gcloud auth print-identity-token) || { echo "Failed to retrieve token"; exit 1; }
-        echo "gcloud_token=$TOKEN" >> $GITHUB_OUTPUT
-        echo "Token successfully retrieved: $TOKEN"
